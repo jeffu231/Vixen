@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using Vixen.Data.Value;
@@ -185,11 +186,51 @@ namespace VixenModules.Effect.SetPosition
 				.Where(x => x != null && x.Properties.Contains(descriptor));
 		}
 
+
+
 		#region Overrides of BaseEffect
 
 		/// <inheritdoc />
 		protected override EffectTypeModuleData EffectModuleData { get; }
 
+		public override bool ForceGenerateVisualRepresentation { get { return true; } }
+
+		public override void GenerateVisualRepresentation(Graphics g, Rectangle clipRectangle)
+		{
+			var showBoth = _canPan && _canTilt;
+			var rect = new Rectangle(clipRectangle.X, clipRectangle.Y, clipRectangle.Width, showBoth ? (clipRectangle.Height-4) / 2 : clipRectangle.Height-4);
+			var textRect = new Rectangle(rect.X, rect.Y, rect.Width, rect.Height / 2);
+			var f = Vixen.Common.Graphics.GetAdjustedFont(g, "Tilt", textRect, SystemFonts.MessageBoxFont.Name, 24, SystemFonts.MessageBoxFont);
+
+			if (_canPan)
+			{
+				var tiltColor = Color.Green;
+				var panCurve = Pan.GenerateGenericCurveImage(new Size(rect.Width, rect.Height),false, false, false, tiltColor);
+				g.DrawImage(panCurve, rect.X, rect.Y+2);
+				
+				g.DrawString("Pan", f, new SolidBrush(tiltColor), rect.X, showBoth?-2:1);
+			}
+
+			
+			if (_canTilt)
+			{
+				var panColor = Color.FromArgb(0, 128, 255);
+				var panCurve = Tilt.GenerateGenericCurveImage(new Size(rect.Width, rect.Height), false, false, false, panColor);
+				if (showBoth)
+				{
+					g.DrawImage(panCurve, rect.X, rect.Y + rect.Height+3);
+					g.DrawString("Tilt", f, new SolidBrush(panColor), rect.X, rect.Y + rect.Height);
+				}
+				else
+				{
+					g.DrawImage(panCurve, rect.X, rect.Y+2);
+					g.DrawString("Tilt", f, new SolidBrush(panColor), rect.X, rect.Y + 1);
+				}
+				
+			}
+		}
+
 		#endregion
+
 	}
 }
