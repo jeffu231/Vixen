@@ -209,9 +209,14 @@ namespace VixenModules.App.Curves
 			LibraryReferencedCurve = null;
 		}
 
-		public Bitmap GenerateGenericCurveImage(Size size, bool inactive=false, bool drawPoints=false, bool editable=false)
+		public Bitmap GenerateGenericCurveImage(Size size, bool inactive=false, bool drawPoints=false, bool editable=false, Color? lineColor = null)
 		{
 			var adjust = editable ? 2 : 0;
+			var penColor = editable ? Color.FromArgb(0, 128, 255) : Color.FromArgb(255, 136, 136, 136);
+			if(lineColor.HasValue)
+			{
+				penColor = lineColor.Value;
+			}
 
 			Bitmap result = new Bitmap(size.Width+adjust, size.Height+adjust);
 
@@ -219,7 +224,7 @@ namespace VixenModules.App.Curves
 			{
 				using (Brush b = new SolidBrush(inactive?Color.DimGray:Color.Black))
 				{
-					using (Pen p = new Pen(editable?Color.FromArgb(0,128,255) : Color.FromArgb(255,136,136,136), 2))
+					using (Pen p = new Pen(penColor, 2))
 					{
 						using (Brush pointBrush = new SolidBrush(Color.FromArgb(255, 136, 136, 136)))
 						{
