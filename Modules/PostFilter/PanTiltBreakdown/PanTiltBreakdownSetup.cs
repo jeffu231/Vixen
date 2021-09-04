@@ -1,15 +1,15 @@
-﻿using Common.Controls;
+﻿using System;
+using System.Windows.Forms;
+using Common.Controls;
 using Common.Controls.Theme;
 using Common.Resources.Properties;
-using System;
-using System.Windows.Forms;
 
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
-	public partial class PositionBreakdownSetup : BaseForm
+	public partial class PanTiltBreakdownSetup : BaseForm
 	{
-		private PositionBreakdownData _data;
-		public PositionBreakdownSetup(PositionBreakdownData data)
+		private PanTiltBreakdownData _data;
+		public PanTiltBreakdownSetup(PanTiltBreakdownData data)
 		{
 			InitializeComponent();
 			ForeColor = ThemeColorTable.ForeColor;

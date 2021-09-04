@@ -1,9 +1,9 @@
 ﻿using System;
 using Vixen.Module.OutputFilter;
 
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
-	public class PositionBreakdownDescriptor : OutputFilterModuleDescriptorBase
+	public class PanTiltBreakdownDescriptor : OutputFilterModuleDescriptorBase
 	{
 		private static readonly Guid _typeId = new Guid("{CA65CF74-5A6E-4AA6-B122-6707C064D71D}");
 
@@ -13,9 +13,9 @@ namespace VixenModules.OutputFilter.PositionBreakdown
 
 		public static Guid ModuleId => _typeId;
 
-		public override Type ModuleClass => typeof (PositionBreakdownModule);
+		public override Type ModuleClass => typeof (PanTiltBreakdownModule);
 
-		public override Type ModuleDataClass => typeof (PositionBreakdownData);
+		public override Type ModuleDataClass => typeof (PanTiltBreakdownData);
 
 		public override string Author => "Vixen Team";
 

@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Windows.Forms;
 using Vixen.Data.Flow;
-using Vixen.Data.Value;
 using Vixen.Module;
 using Vixen.Module.OutputFilter;
 
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
-	public class PositionBreakdownModule : OutputFilterModuleInstanceBase
+	public class PanTiltBreakdownModule : OutputFilterModuleInstanceBase
 	{
-		private PositionBreakdownData _data;
-		private PositionBreakdownOutput[] _outputs;
+		private PanTiltBreakdownData _data;
+		private PanTiltBreakdownOutput[] _outputs;
 
 		public override void Handle(IntentsDataFlowData obj)
 		{
-			foreach (PositionBreakdownOutput output in _outputs) {
+			foreach (PanTiltBreakdownOutput output in _outputs) {
 				output.ProcessInputData(obj);
 			}
 		}
@@ -30,7 +29,7 @@ namespace VixenModules.OutputFilter.PositionBreakdown
 			get => _data;
 			set
 			{
-				_data = (PositionBreakdownData) value;
+				_data = (PanTiltBreakdownData) value;
 				_CreateOutputs();
 			}
 		}
@@ -39,7 +38,7 @@ namespace VixenModules.OutputFilter.PositionBreakdown
 
 		public override bool Setup()
 		{
-			using (PositionBreakdownSetup setup = new PositionBreakdownSetup(_data)) {
+			using (PanTiltBreakdownSetup setup = new PanTiltBreakdownSetup(_data)) {
 				if (setup.ShowDialog() == DialogResult.OK) {
 					_data.CanPan = setup.CanPan;
 					_data.CanTilt = setup.CanTilt;
@@ -54,17 +53,17 @@ namespace VixenModules.OutputFilter.PositionBreakdown
 		{
 			if (_data.CanPan && _data.CanTilt)
 			{
-				_outputs = new[] { new PositionBreakdownOutput(PositionType.Pan), new PositionBreakdownOutput(PositionType.Tilt) };
+				_outputs = new[] { new PanTiltBreakdownOutput(PositionType.Pan), new PanTiltBreakdownOutput(PositionType.Tilt) };
 			}else if (_data.CanPan)
 			{
-				_outputs = new[] { new PositionBreakdownOutput(PositionType.Pan) };
+				_outputs = new[] { new PanTiltBreakdownOutput(PositionType.Pan) };
 			}else if(_data.CanTilt)
 			{
-				_outputs = new[] { new PositionBreakdownOutput(PositionType.Tilt) };
+				_outputs = new[] { new PanTiltBreakdownOutput(PositionType.Tilt) };
 			}
 			else
 			{
-				_outputs = Array.Empty<PositionBreakdownOutput>();
+				_outputs = Array.Empty<PanTiltBreakdownOutput>();
 			}
 			
 		}

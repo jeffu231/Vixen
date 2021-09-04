@@ -4,11 +4,11 @@
 		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
 		<Platform Condition=" '$(Platform)' == '' ">x86</Platform>
 		<ProductVersion>1.0</ProductVersion>
-		<RootNamespace>VixenModules.OutputFilter.PositionBreakdown</RootNamespace>
+		<RootNamespace>VixenModules.OutputFilter.PanTiltBreakdown</RootNamespace>
 		<TargetFramework>net48</TargetFramework>
-		<AssemblyTitle>PositionBreakdown</AssemblyTitle>
-		<AssemblyName>PositionBreakdown</AssemblyName>
-		<Product>PositionBreakdown</Product>
+		<AssemblyTitle>PanTiltBreakdown</AssemblyTitle>
+		<AssemblyName>PanTiltBreakdown</AssemblyName>
+		<Product>PanTiltBreakdown</Product>
 		<Copyright>Copyright ©  2021</Copyright>
 		<Platforms>x64;x86</Platforms>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
@@ -32,8 +32,8 @@
 		<Reference Include="System.Windows.Forms" />
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Update="PositionBreakdownSetup.Designer.cs">
-			<DependentUpon>PositionBreakdownSetup.cs</DependentUpon>
+		<Compile Update="PanTiltBreakdownSetup.Designer.cs">
+			<DependentUpon>PanTiltBreakdownSetup.cs</DependentUpon>
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>

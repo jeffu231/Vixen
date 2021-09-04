@@ -1,7 +1,7 @@
 ﻿
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
-	partial class PositionBreakdownSetup
+	partial class PanTiltBreakdownSetup
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -102,9 +102,9 @@ namespace VixenModules.OutputFilter.PositionBreakdown
 			this.Controls.Add(this.checkBoxCanTilt);
 			this.Controls.Add(this.checkBoxCanPan);
 			this.Controls.Add(this.flowLayoutPanel1);
-			this.Name = "PositionBreakdownSetup";
+			this.Name = "PanTiltBreakdownSetup";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-			this.Text = "Position Breakdown Setup";
+			this.Text = "Pan Tilt Breakdown Setup";
 			this.flowLayoutPanel1.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();

@@ -1,20 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Vixen.Data.Flow;
-using Vixen.Data.Value;
 using Vixen.Sys;
 
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
-	internal class PositionBreakdownOutput : IDataFlowOutput<IntentsDataFlowData>
+	internal class PanTiltBreakdownOutput : IDataFlowOutput<IntentsDataFlowData>
 	{
 		private readonly List<IIntentState> _states;
-		private readonly PositionBreakdownFilter _filter;
+		private readonly PanTiltBreakdownFilter _filter;
 		private readonly IntentsDataFlowData _intentData;
 
-		public PositionBreakdownOutput(PositionType type)
+		public PanTiltBreakdownOutput(PositionType type)
 		{
-			_filter = new PositionBreakdownFilter(type);
+			_filter = new PanTiltBreakdownFilter(type);
 			_states = new List<IIntentState>();
 			_intentData = new IntentsDataFlowData(Enumerable.Empty<IIntentState>().ToList())
 			{

@@ -1,18 +1,17 @@
 ﻿using Vixen.Data.Value;
-using Vixen.Intent;
 using Vixen.Sys;
 using Vixen.Sys.Dispatch;
 
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
 	/// <summary>
 	/// This filter gets the intensity percent for a given state for non mixing colors
 	/// </summary>
-	internal class PositionBreakdownFilter : IntentStateDispatch
+	internal class PanTiltBreakdownFilter : IntentStateDispatch
 	{
 		private IIntentState _intentValue = null;
 
-		public PositionBreakdownFilter(PositionType type)
+		public PanTiltBreakdownFilter(PositionType type)
 		{
 			PositionType = type;
 		}

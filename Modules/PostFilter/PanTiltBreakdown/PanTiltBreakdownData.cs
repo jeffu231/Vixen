@@ -1,13 +1,13 @@
 ﻿using System.Runtime.Serialization;
 using Vixen.Module;
 
-namespace VixenModules.OutputFilter.PositionBreakdown
+namespace VixenModules.OutputFilter.PanTiltBreakdown
 {
-	public class PositionBreakdownData : ModuleDataModelBase
+	public class PanTiltBreakdownData : ModuleDataModelBase
 	{
 		public override IModuleDataModel Clone()
 		{
-			PositionBreakdownData newInstance = (PositionBreakdownData)MemberwiseClone();
+			PanTiltBreakdownData newInstance = (PanTiltBreakdownData)MemberwiseClone();
 			return newInstance;
 		}
 
