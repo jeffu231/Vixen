@@ -27,15 +27,12 @@ namespace VixenModules.Effect.VideoToVideo
         private static readonly string VideoPath = VideoToVideoDescriptor.ModulePath;
         private static readonly string TempPath = Path.Combine(Path.GetTempPath(), "Vixen", "VideoToVideoEffect");
         private string _tempFilePath;
-        private bool _videoFileDetected;
         private Size _frameSize;
         private List<string> _moviePicturesFileList;
         private int VideoLength;
         private bool _getNewVideoInfo;
-        private int VideoQuality = 50;
         private bool _processVideo;
-        double _currentMovieImageNum;
-
+       
 
         public VideoToVideo()
 		{
@@ -58,10 +55,6 @@ namespace VixenModules.Effect.VideoToVideo
             if (_data.FileName == "") return;
 
             if (_processVideo || !Directory.Exists(_tempFilePath)) ProcessMovie(_frameSize); // Check if directory exist is needed for when an effect is cloned.
-            if (_videoFileDetected)
-            {
-                _currentMovieImageNum = 0;
-            }
         }
 
         protected override void _PreRender(CancellationTokenSource tokenSource = null)
@@ -248,7 +241,7 @@ namespace VixenModules.Effect.VideoToVideo
             }
             catch (Exception e)
             {
-                Logging.Error("Exception rendering the visualization for the VideoToVideo effect.", e);
+                Logging.Error(e,"Exception rendering the visualization for the VideoToVideo effect.");
             }
         }
         private void ProcessMovie(Size frameSize)
@@ -272,7 +265,7 @@ namespace VixenModules.Effect.VideoToVideo
                 
 
                 ffmpeg.ffmpeg converter = new ffmpeg.ffmpeg(videoFilename);
-                _currentMovieImageNum = 0;
+        
                 // Height and Width needs to be evenly divisible to work or ffmpeg complains.
                 if (renderHeight % 2 != 0) renderHeight++;
                 if (renderWidth % 2 != 0) renderWidth++;
@@ -281,7 +274,7 @@ namespace VixenModules.Effect.VideoToVideo
                     renderWidth, renderHeight, MaintainAspect, RotateVideo, cropVideo,frameRate);
                 _moviePicturesFileList = Directory.GetFiles(_tempFilePath).OrderBy(f => f).ToList();
 
-                _videoFileDetected = true;
+                
             }
             catch (Exception ex)
             {
@@ -289,7 +282,7 @@ namespace VixenModules.Effect.VideoToVideo
                 var messageBox = new MessageBoxForm("There was a problem converting " + videoFilename + ": " + ex.Message,
                     "Error Converting Video", MessageBoxButtons.OK, SystemIcons.Error);
                 messageBox.ShowDialog();
-                _videoFileDetected = false;
+               
             }
         }
 
@@ -326,8 +319,8 @@ namespace VixenModules.Effect.VideoToVideo
             string videoFilename = Path.Combine(VideoPath, _data.FileName);
             try
             {
-                VideoQuality = 50; // Set quality to 50% when a new file is opened.
-                                   // Delete old path and create new path for processed video
+                
+                // Delete old path and create new path for processed video
                 EstablishTempFolder();
                 // Gets Video length and Frame rate will continue if users start position is less then the video length.
                 ffmpeg.ffmpeg videoLengthInfo = new ffmpeg.ffmpeg(videoFilename);
@@ -357,7 +350,7 @@ namespace VixenModules.Effect.VideoToVideo
                 var messageBox = new MessageBoxForm("There was a problem converting " + videoFilename + ": " + ex.Message,
                     "Error Converting Video", MessageBoxButtons.OK, SystemIcons.Error);
                 messageBox.ShowDialog();
-                _videoFileDetected = false;
+        
             }
 
         }

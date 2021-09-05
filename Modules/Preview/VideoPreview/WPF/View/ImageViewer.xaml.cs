@@ -14,7 +14,6 @@ namespace VixenModules.Preview.VideoPreview.WPF.View
 	/// </summary>
 	public partial class ImageViewer : UserControl
 	{
-		private int _width, _height;
 		private WriteableBitmap _writeableBitmap;
 
 		public ImageViewer()

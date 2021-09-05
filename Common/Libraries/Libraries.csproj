@@ -95,9 +95,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
-    <Reference Include="WriteableBitmapEx.Wpf, Version=1.5.0.0, Culture=neutral, PublicKeyToken=50375ca6144f1c69, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\WriteableBitmapEx.1.5.1.0\lib\net40\WriteableBitmapEx.Wpf.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NShape\Core\NShape.csproj" />
@@ -135,6 +132,7 @@
     <PackageReference Include="System.Xml.XDocument" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="Zstandard.Net" Version="1.1.7" />
+	<PackageReference Include="WriteableBitmapEx" Version="1.6.8"/>
   </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="del &quot;$(OutDir)\K8055D*&quot;&#xD;&#xA;del &quot;$(OutDir)\fmstick*&quot;&#xD;&#xA;del &quot;$(OutDir)\inpout*&quot;&#xD;&#xA;del &quot;$(OutDir)\mrdsio*&quot;&#xD;&#xA;del &quot;$(OutDir)\System.Windows.Forms.Calendar35.dll*&quot;" />

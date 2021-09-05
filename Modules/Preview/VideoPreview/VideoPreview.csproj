@@ -29,8 +29,14 @@
 		<OutputPath>..\..\..\Debug64\Modules\Preview\</OutputPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="NLog" Version="4.7.11" />
-		<PackageReference Include="WriteableBitmapEx" Version="1.6.8" />
+		<PackageReference Include="NLog" Version="4.7.11">
+			<ExcludeAssets>runtime</ExcludeAssets>
+			<IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="WriteableBitmapEx" Version="1.6.8">
+			<ExcludeAssets>runtime</ExcludeAssets>
+			<IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
@@ -59,20 +65,12 @@
 		</ProjectReference>
 	</ItemGroup>
 	<ItemGroup>
-		<Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-			<HintPath>..\..\..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
 		<Reference Include="PresentationCore" />
 		<Reference Include="PresentationFramework" />
 		<Reference Include="System.Xaml" />
 		<Reference Include="System.Windows.Forms" />
 		<Reference Include="WindowsBase" />
 		<Reference Include="WindowsFormsIntegration" />
-		<Reference Include="WriteableBitmapEx.Wpf, Version=1.5.0.0, Culture=neutral, PublicKeyToken=50375ca6144f1c69, processorArchitecture=MSIL">
-			<HintPath>..\..\..\packages\WriteableBitmapEx.1.5.1.0\lib\net40\WriteableBitmapEx.Wpf.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
 	</ItemGroup>
 	<ItemGroup>
 		<EmbeddedResource Update="Properties\Resources.resx">
