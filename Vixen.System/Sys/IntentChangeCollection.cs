@@ -5,17 +5,17 @@ namespace Vixen.Sys
 {
 	public class IntentChangeCollection
 	{
-		public IntentChangeCollection(IEnumerable<IIntent> addedIntents, IEnumerable<IIntent> removedIntents)
+		public IntentChangeCollection(IEnumerable<IIntentState> addedIntents, IEnumerable<IIntentState> removedIntents)
 		{
-			if (addedIntents == null) addedIntents = Enumerable.Empty<IIntent>();
-			if (removedIntents == null) removedIntents = Enumerable.Empty<IIntent>();
+			if (addedIntents == null) addedIntents = Enumerable.Empty<IIntentState>();
+			if (removedIntents == null) removedIntents = Enumerable.Empty<IIntentState>();
 
 			AddedIntents = addedIntents.ToArray();
 			RemovedIntents = removedIntents.ToArray();
 		}
 
-		public IIntent[] AddedIntents { get; private set; }
+		public IIntentState[] AddedIntents { get; private set; }
 
-		public IIntent[] RemovedIntents { get; private set; }
+		public IIntentState[] RemovedIntents { get; private set; }
 	}
 }

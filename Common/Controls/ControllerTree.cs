@@ -74,7 +74,7 @@ namespace Common.Controls
 		}
 
 
-		public void PopulateControllerTree(IControllerDevice controllerToSelect = null)
+		public void PopulateControllerTree(IOutputDevice controllerToSelect = null)
 		{
 			if (controllerToSelect == null) {
 				_PopulateControllerTree();
@@ -132,11 +132,14 @@ namespace Common.Controls
 			treeview.Nodes.Clear();
 			treeview.SelectedNodes.Clear();
 
-			foreach (IControllerDevice controller in VixenSystem.OutputControllers) {
+			foreach (var controller in VixenSystem.OutputControllers) {
 				AddControllerToTree(treeview.Nodes, controller);
 			}
 
-			
+			foreach (var controller in VixenSystem.SmartOutputControllers)
+			{
+				AddSmartControllerToTree(treeview.Nodes, controller);
+			}
 			// if a new controller has been passed in to select, select it instead.
 			if (treeNodesToSelect != null) {
 				_selectedNodes = new HashSet<string>(treeNodesToSelect);
@@ -207,7 +210,7 @@ namespace Common.Controls
 			return result;
 		}
 
-		private string GenerateEquivalentTreeNodeFullPathFromController(IControllerDevice controller)
+		private string GenerateEquivalentTreeNodeFullPathFromController(IOutputDevice controller)
 		{
 			return controller.Id.ToString();
 		}
@@ -277,6 +280,46 @@ namespace Common.Controls
 					current = current.NextNode;
 				}
 			}
+		}
+
+		private void AddSmartControllerToTree(TreeNodeCollection collection, ISmartControllerDevice controller)
+		{
+			TreeNode controllerNode = new TreeNode();
+
+			controllerNode.Name = controller.Id.ToString();
+			controllerNode.Text = controller.Name;
+			controllerNode.Tag = controller;
+
+			if (controller.IsRunning)
+				controllerNode.ImageKey = controllerNode.SelectedImageKey = "Group";
+			else
+				controllerNode.ImageKey = controllerNode.SelectedImageKey = "RedBall";
+
+			for (int i = 0; i < controller.OutputCount; i++)
+			{
+				TreeNode channelNode = new TreeNode();
+				channelNode.Name = channelNode.Text = controller.Outputs[i].Name;
+				channelNode.Tag = i;
+
+				IDataFlowComponentReference source = controller.Outputs[i].Source;
+
+				if (source == null)
+				{
+					channelNode.ImageKey = channelNode.SelectedImageKey = "WhiteBall";
+				}
+				else if (source.Component == null || source.OutputIndex < 0)
+				{
+					channelNode.ImageKey = channelNode.SelectedImageKey = "GreyBall";
+				}
+				else
+				{
+					channelNode.ImageKey = channelNode.SelectedImageKey = "GreenBall";
+				}
+
+				controllerNode.Nodes.Add(channelNode);
+			}
+
+			collection.Add(controllerNode);
 		}
 
 		private void AddControllerToTree(TreeNodeCollection collection, IControllerDevice controller)
@@ -478,13 +521,26 @@ namespace Common.Controls
 				outputCount = nd.Value;
 			}
 
-			ControllerFactory controllerFactory = new ControllerFactory();
-			OutputController oc = (OutputController)controllerFactory.CreateDevice(controllerTypeId, name);
-			oc.OutputCount = outputCount;
-			VixenSystem.OutputControllers.Add(oc);
+			
+			if (moduleDescriptor.TypeName.StartsWith("Video"))
+			{
+				SmartControllerFactory scf = new SmartControllerFactory();
+				SmartOutputController sc = (SmartOutputController) scf.CreateDevice(controllerTypeId, name);
+				sc.OutputCount = outputCount;
+				VixenSystem.SmartOutputControllers.Add(sc);
+				PopulateControllerTree(sc);
+				//AddControllerToTree(sc);
+			}
+			else
+			{
+				ControllerFactory controllerFactory = new ControllerFactory();
+				OutputController oc = (OutputController)controllerFactory.CreateDevice(controllerTypeId, name);
+				oc.OutputCount = outputCount;
+				VixenSystem.OutputControllers.Add(oc);
+				PopulateControllerTree(oc);
+			}
 
 			//PopulateControllerTree(oc);
-			AddControllerToTree(oc);
 			OnControllersChanged();
 
 			return true;

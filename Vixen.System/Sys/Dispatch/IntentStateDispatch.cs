@@ -25,5 +25,14 @@ namespace Vixen.Sys.Dispatch
 		public virtual void Handle(IIntentState<IntensityValue> obj)
 		{
 		}
+
+		#region Implementation of IHandler<in IIntentState<BitmapValue>>
+
+		/// <inheritdoc />
+		public virtual void Handle(IIntentState<BitmapValue> obj)
+		{
+		}
+
+		#endregion
 	}
 }

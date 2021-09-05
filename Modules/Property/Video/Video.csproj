@@ -1,0 +1,70 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<UseWindowsForms>true</UseWindowsForms>
+		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+		<ProductVersion>1.0</ProductVersion>
+		<ProjectGuid>{26EBB496-DE40-4ABA-A1D4-D28A691D7E6D}</ProjectGuid>
+		<RootNamespace>VixenModules.Property.Video</RootNamespace>
+		<AssemblyName>Property.Video</AssemblyName>
+		<TargetFramework>net48</TargetFramework>
+		<AssemblyTitle>Video</AssemblyTitle>
+		<Company>Jon Chuchla</Company>
+		<Product>Video</Product>
+		<Copyright>Copyright © 2019 Jon Chuchla</Copyright>
+		<CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+		<Platforms>x64;x86</Platforms>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+		<OutputPath>$(SolutionDir)\$(Configuration)\Modules\Property\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+		<OutputPath>$(SolutionDir)\Release64\Modules\Property\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+		<OutputPath>..\..\..\$(Configuration)\Modules\Property\</OutputPath>
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+		<OutputPath>..\..\..\Debug64\Modules\Property\</OutputPath>
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="NLog" Version="4.7.11" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
+			<Private>false</Private>
+			<IncludeAssets>None</IncludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\..\..\Common\Controls\Controls.csproj">
+			<Private>false</Private>
+			<IncludeAssets>None</IncludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\..\..\Common\Resources\Resources.csproj">
+			<Private>false</Private>
+			<IncludeAssets>None</IncludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+			<HintPath>..\..\..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="System.Windows.Forms" />
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Update="SetupForm.cs">
+			<SubType>Form</SubType>
+		</Compile>
+		<Compile Update="SetupForm.Designer.cs">
+			<DependentUpon>SetupForm.cs</DependentUpon>
+		</Compile>
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="SetupForm.resx">
+			<DependentUpon>SetupForm.cs</DependentUpon>
+		</EmbeddedResource>
+	</ItemGroup>
+</Project>

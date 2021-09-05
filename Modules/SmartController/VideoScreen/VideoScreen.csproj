@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<UseWPF>true</UseWPF>
+		<Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+		<Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+		<ProductVersion>1.0</ProductVersion>
+		<ProjectGuid>{E0C565E9-E0A4-4720-9EEB-2D522505E1A2}</ProjectGuid>
+		<RootNamespace>VixenModules.SmartController.VideoScreen</RootNamespace>
+		<TargetFramework>net48</TargetFramework>
+		<AssemblyTitle>Video Screen Controller</AssemblyTitle>
+		<Product>Video Screen Controller</Product>
+		<Copyright>Copyright ©  2019</Copyright>
+		<CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+		<Platforms>x64;x86</Platforms>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+		<OutputPath>$(SolutionDir)\$(Configuration)\Modules\Controller\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+		<OutputPath>$(SolutionDir)\Release64\Modules\Controller\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+		<OutputPath>..\..\..\$(Configuration)\Modules\Controller\</OutputPath>
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+		<OutputPath>..\..\..\Debug64\Modules\Controller\</OutputPath>
+		<DefineConstants>TRACE</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="NLog" Version="4.7.11" />
+		<PackageReference Include="WriteableBitmapEx" Version="1.6.8" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+			<HintPath>..\..\..\packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="PresentationCore" />
+		<Reference Include="PresentationFramework" />
+		<Reference Include="System.Windows.Forms" />
+		<Reference Include="System.Xaml" />
+		<Reference Include="System.Data.DataSetExtensions" />
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="WindowsBase" />
+		<Reference Include="WindowsFormsIntegration" />
+		<Reference Include="WriteableBitmapEx.Wpf, Version=1.5.0.0, Culture=neutral, PublicKeyToken=50375ca6144f1c69, processorArchitecture=MSIL">
+			<HintPath>..\..\..\packages\WriteableBitmapEx.1.5.1.0\lib\net40\WriteableBitmapEx.Wpf.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Common\Controls\Controls.csproj">
+			<Private>false</Private>
+			<IncludeAssets>None</IncludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
+			<Private>false</Private>
+			<IncludeAssets>None</IncludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Update="WPF\VideoWindowWPFContainer.resx">
+			<DependentUpon>VideoWindowWPFContainer.cs</DependentUpon>
+		</EmbeddedResource>
+	</ItemGroup>
+</Project>

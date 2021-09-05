@@ -12,11 +12,10 @@ namespace Vixen.Sys.Managers
 		private IControllerLinkManager<SmartOutputController> _linkManager;
 		private OutputDeviceCollectionExecutionMediator<SmartOutputController> _mediator;
 
-		internal SmartOutputControllerManager(IControllerLinkManager<SmartOutputController> linkManager,
-		                                      IOutputDeviceCollection<SmartOutputController> deviceCollection,
+		internal SmartOutputControllerManager(IOutputDeviceCollection<SmartOutputController> deviceCollection,
 		                                      IOutputDeviceExecution<SmartOutputController> deviceExecution)
 		{
-			_linkManager = linkManager;
+			//_linkManager = linkManager;
 			_mediator = new OutputDeviceCollectionExecutionMediator<SmartOutputController>(deviceCollection, deviceExecution);
 		}
 

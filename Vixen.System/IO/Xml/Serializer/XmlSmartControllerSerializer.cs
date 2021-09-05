@@ -26,7 +26,8 @@ namespace Vixen.IO.Xml.Serializer
 			XElement element = new XElement(ELEMENT_SMART_CONTROLLER,
 			                                new XAttribute(ATTR_NAME, controller.Name),
 			                                new XAttribute(ATTR_HARDWARE_ID, controller.ModuleId),
-			                                new XAttribute(ATTR_ID, controller.Id),
+											new XAttribute(ATTR_HARDWARE_INSTANCE_ID, controller.ModuleInstanceId),
+											new XAttribute(ATTR_ID, controller.Id),
 			                                _WriteOutputs(controller));
 
 			return element;

@@ -43,5 +43,14 @@ namespace Vixen.Data.Evaluator
 
 		protected ICommand EvaluatorValue { get; set; }
 
+		#region Implementation of IHandler<in IIntentState<BitmapValue>>
+
+		/// <inheritdoc />
+		public void Handle(IIntentState<BitmapValue> obj)
+		{
+			
+		}
+
+		#endregion
 	}
 }

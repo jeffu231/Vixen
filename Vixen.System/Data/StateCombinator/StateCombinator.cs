@@ -53,6 +53,16 @@ namespace Vixen.Data.StateCombinator
 		{
 		}
 
+		#region Implementation of IHandler<in IIntentState<BitmapValue>>
+
+		/// <inheritdoc />
+		public void Handle(IIntentState<BitmapValue> obj)
+		{ 
+		}
+
+		#endregion
+
 		protected List<IIntentState> StateCombinatorValue { get; set; }
+
 	}
 }

@@ -68,12 +68,12 @@ namespace Vixen.IO.Xml.SystemConfig
 			_content.Add(element);
 		}
 
-		//protected override void WriteSmartControllers()
-		//{
-		//	XmlSmartControllerCollectionSerializer serializer = new XmlSmartControllerCollectionSerializer();
-		//	XElement element = serializer.WriteObject(_systemConfig.SmartOutputControllers);
-		//	_content.Add(element);
-		//}
+		protected override void WriteSmartControllers()
+		{
+			XmlSmartControllerCollectionSerializer serializer = new XmlSmartControllerCollectionSerializer();
+			XElement element = serializer.WriteObject(_systemConfig.SmartOutputControllers);
+			_content.Add(element);
+		}
 
 		protected override void WriteDisabledDevices()
 		{
@@ -154,11 +154,11 @@ namespace Vixen.IO.Xml.SystemConfig
 			_systemConfig.OutputControllers = serializer.ReadObject(_content);
 		}
 
-		//protected override void ReadSmartControllers()
-		//{
-		//	XmlSmartControllerCollectionSerializer serializer = new XmlSmartControllerCollectionSerializer();
-		//	_systemConfig.SmartOutputControllers = serializer.ReadObject(_content);
-		//}
+		protected override void ReadSmartControllers()
+		{
+			XmlSmartControllerCollectionSerializer serializer = new XmlSmartControllerCollectionSerializer();
+			_systemConfig.SmartOutputControllers = serializer.ReadObject(_content);
+		}
 
 		protected override void ReadDisabledDevices()
 		{

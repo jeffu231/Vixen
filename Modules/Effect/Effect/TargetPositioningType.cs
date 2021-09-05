@@ -7,6 +7,8 @@ namespace VixenModules.Effect.Effect
 		[Description("Strings")]
 		Strings,
 		[Description("Locations")]
-		Locations
-	}
+		Locations,
+        [Description("Video")]
+        Video
+    }
 }

@@ -11,7 +11,7 @@
 			WriteElements();
 			WriteNodes();
 			WriteControllers();
-			//WriteSmartControllers();
+			WriteSmartControllers();
 			WritePreviews();
 			WriteFilters();
 			WriteDataFlowPatching();
@@ -25,7 +25,7 @@
 		protected abstract void WriteElements();
 		protected abstract void WriteNodes();
 		protected abstract void WriteControllers();
-		//protected abstract void WriteSmartControllers();
+		protected abstract void WriteSmartControllers();
 		protected abstract void WritePreviews();
 		protected abstract void WriteFilters();
 		protected abstract void WriteDataFlowPatching();
@@ -40,7 +40,7 @@
 			ReadElements();
 			ReadNodes();
 			ReadControllers();
-			//ReadSmartControllers();
+			ReadSmartControllers();
 			ReadPreviews();
 			ReadFilters();
 			ReadDataFlowPatching();
@@ -54,7 +54,7 @@
 		protected abstract void ReadElements();
 		protected abstract void ReadNodes();
 		protected abstract void ReadControllers();
-		//protected abstract void ReadSmartControllers();
+		protected abstract void ReadSmartControllers();
 		protected abstract void ReadPreviews();
 		protected abstract void ReadFilters();
 		protected abstract void ReadDataFlowPatching();

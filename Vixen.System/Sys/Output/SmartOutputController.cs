@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Vixen.Data.Flow;
 using Vixen.Data.Policy;
+using Vixen.Factory;
 using Vixen.Module.SmartController;
 
 namespace Vixen.Sys.Output
@@ -47,6 +48,11 @@ namespace Vixen.Sys.Output
 		public Guid ModuleId
 		{
 			get { return _outputModuleConsumer.ModuleId; }
+		}
+
+		public Guid ModuleInstanceId
+		{
+			get { return _outputModuleConsumer.ModuleInstanceId; }
 		}
 
 		public int UpdateInterval
@@ -155,6 +161,18 @@ namespace Vixen.Sys.Output
 		public int OutputCount
 		{
 			get { return _outputMediator.OutputCount; }
+			set
+			{
+				IntentOutputFactory outputFactory = new IntentOutputFactory();
+				while (OutputCount < value)
+				{
+					AddOutput(outputFactory.CreateOutput($"Output {(OutputCount + 1).ToString()}", OutputCount));
+				}
+				while (OutputCount > value)
+				{
+					RemoveOutput(Outputs[OutputCount - 1]);
+				}
+			}
 		}
 
 		public IDataFlowComponent GetDataFlowComponentForOutput(IntentOutput output)
@@ -175,7 +193,7 @@ namespace Vixen.Sys.Output
 		private IntentChangeCollection _GenerateChangeCollection(IntentOutput output)
 		{
 			_dataPolicy.OutputCurrentState = _outputCurrentStates.GetOutputCurrentState(output);
-			output.State.Dispatch(_dataPolicy);
+			output.State?.Dispatch(_dataPolicy);
 			_outputCurrentStates.SetOutputCurrentState(output, _dataPolicy.OutputCurrentState);
 			return _dataPolicy.Result;
 		}

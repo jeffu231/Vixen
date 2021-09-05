@@ -25,6 +25,11 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 	<ItemGroup>
+    <ProjectReference Include="..\..\..\Common\FastPixel\FastPixel.csproj">
+      <Project>{4EA5025B-5FFC-4FF8-9001-D0F64655BFB6}</Project>
+      <Name>FastPixel</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj">
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>
@@ -48,6 +53,11 @@
     <ProjectReference Include="..\..\Property\Orientation\Orientation.csproj">
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Property\Video\Video.csproj">
+      <Project>{26ebb496-de40-4aba-a1d4-d28a691d7e6d}</Project>
+      <Name>Video</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

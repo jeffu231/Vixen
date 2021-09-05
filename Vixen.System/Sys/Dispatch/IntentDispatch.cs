@@ -25,5 +25,10 @@ namespace Vixen.Sys.Dispatch
 		public virtual void Handle(IIntent<IntensityValue> obj)
 		{
 		}
+		public virtual void Handle(IIntent<BitmapValue> obj)
+		{
+		}
+
+		
 	}
 }

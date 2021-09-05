@@ -187,6 +187,32 @@ namespace FastPixel
 			}
 		}
 
+		public void SetPixelWithAlpha(int x, int y, Color color)
+		{
+			if (!locked)
+				throw new Exception("Bitmap not locked.");
+
+			if (x >= 0 && x < _width && y >= 0 && y < _height)
+			{
+				if (IsAlphaBitmap)
+				{
+					int index = ((y * Width + x) * 4);
+					rgbValues[index] = color.B;
+					rgbValues[index + 1] = color.G;
+					rgbValues[index + 2] = color.R;
+					rgbValues[index + 3] = color.A;
+
+				}
+				else
+				{
+					int index = ((y * Width + x) * 3);
+					rgbValues[index] = color.B;
+					rgbValues[index + 1] = color.G;
+					rgbValues[index + 2] = color.R;
+				}
+			}
+		}
+
 		public void SetPixel(Point location, Color color)
 		{
 			this.SetPixel(location.X, location.Y, color);

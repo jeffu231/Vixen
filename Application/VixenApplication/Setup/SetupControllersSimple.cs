@@ -116,16 +116,18 @@ namespace VixenApplication.Setup
 			ControllersAndOutputsSet result = new ControllersAndOutputsSet();
 
 			foreach (TreeNode node in controllerTree.SelectedTreeNodes) {
-				IControllerDevice controller = node.Tag as IControllerDevice;
+				dynamic controller = node.Tag as IControllerDevice;
 				int outputIndex = -1;
 
 				if (controller == null) {
 					if (node.Tag is int) {
 						outputIndex = (int) node.Tag;
 						controller = node.Parent.Tag as IControllerDevice;
-						if (controller == null) {
+						if (controller == null)
+						{
 							Logging.Error("node parent is not a controller: " + node.Name);
 						}
+						
 					}
 				}
 

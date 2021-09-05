@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Threading;
@@ -17,6 +18,7 @@ using VixenModules.Effect.Effect.Location;
 using VixenModules.EffectEditor.EffectDescriptorAttributes;
 using VixenModules.Property.Location;
 using VixenModules.Property.Orientation;
+using VixenModules.Property.Video;
 
 namespace VixenModules.Effect.Effect
 {
@@ -25,9 +27,11 @@ namespace VixenModules.Effect.Effect
 	/// commonly thought of as pixel effects.  
 	/// </summary>
 	public abstract class PixelEffectBase : BaseEffect
-	{
+    {
+        protected static short FrameTime = (short)VixenSystem.DefaultUpdateTimeSpan.TotalMilliseconds; //50;
 		protected static Logger Logging = LogManager.GetCurrentClassLogger();
 		protected readonly List<int> StringPixelCounts = new List<int>();
+        protected bool VideoElementDetected = false;
 		protected List<ElementLocation> ElementLocations; 
 
 		private EffectIntents _elementData;
@@ -37,7 +41,7 @@ namespace VixenModules.Effect.Effect
 		private bool _elementsCached;
 		private List<Element> _cachedElements;
 
-		public void CacheElementEnumerator()
+        public void CacheElementEnumerator()
 		{
 			_cachedElements = TargetNodes.First()?.Distinct().ToList();
 			_elementsCached = true;
@@ -60,10 +64,15 @@ namespace VixenModules.Effect.Effect
 			{
 				ConfigureStringBuffer();
 			}
-			else
+			else if(TargetPositioning == TargetPositioningType.Locations)
 			{
 				ConfigureVirtualBuffer();
 			}
+			else
+			{
+				ConfigureVideoBuffer();
+			}
+			
 		}
 
 		protected override void _PreRender(CancellationTokenSource tokenSource = null)
@@ -249,8 +258,13 @@ namespace VixenModules.Effect.Effect
 		}
 
 		protected override void TargetNodesChanged()
-		{
-			if (TargetPositioning == TargetPositioningType.Strings)
+        {
+            if (CheckNodesForVideoProperty())
+            {
+                TargetPositioning = TargetPositioningType.Video;
+                return;
+            }
+            if (TargetPositioning == TargetPositioningType.Strings)
 			{
 				SetOrientation();
 			}
@@ -263,6 +277,15 @@ namespace VixenModules.Effect.Effect
 			if (orientation.Item1)
 			{
 				StringOrientation = orientation.Item2;
+			}
+		}
+
+		private void ConfigureVideoBuffer()
+		{
+			if (!_frameSize.IsEmpty)
+			{
+				_bufferHt = _frameSize.Width;
+				_bufferWi = _frameSize.Height;
 			}
 		}
 
@@ -342,8 +365,16 @@ namespace VixenModules.Effect.Effect
 			}
 		}
 
-		private int _bufferHtOffset;
+        private Size _frameSize;       
+        protected Size FrameSize
+        {
+            get
+            {
+                return _frameSize;
+            }
+        }
 
+        private int _bufferHtOffset;
 		protected int BufferHtOffset
 		{
 			get
@@ -363,11 +394,16 @@ namespace VixenModules.Effect.Effect
 
 		protected EffectIntents RenderNode(IElementNode node, ref EffectIntents effectIntents)
 		{
-			if (TargetPositioning == TargetPositioningType.Strings)
-			{
-				return RenderNodeByStrings(node, ref effectIntents);
-			}
-			return RenderNodeByLocation(node, ref effectIntents);
+            //change to switch case and check for video type.
+            switch (TargetPositioning)
+            {
+                case TargetPositioningType.Locations:
+                    return RenderNodeByLocation(node, ref effectIntents);
+                case TargetPositioningType.Video:
+                    return RenderNodeByVideo(node, ref effectIntents);
+                default:
+                    return RenderNodeByStrings(node, ref effectIntents);
+            }            
 		}
 
 		protected EffectIntents RenderNodeByLocation(IElementNode node, ref EffectIntents effectIntents)
@@ -397,18 +433,16 @@ namespace VixenModules.Effect.Effect
 			int nFrames = GetNumberFrames();
 			if (nFrames <= 0 | BufferWi==0 || BufferHt==0) return new EffectIntents();
 			var buffer = new PixelFrameBuffer(BufferWi, BufferHt, UseBaseColor?BaseColor:Color.Transparent);
-
-			int bufferSize = StringPixelCounts.Sum();
-			
+			int bufferSize = StringPixelCounts.Sum();			
 			TimeSpan startTime = TimeSpan.Zero;
 
-			// set up arrays to hold the generated colors
-			var pixels = new RGBValue[bufferSize][];
-			for (int eidx = 0; eidx < bufferSize; eidx++)
-				pixels[eidx] = new RGBValue[nFrames];
+            // set up arrays to hold the generated colors
+            var pixels = new RGBValue[bufferSize][];
+            for (int eidx = 0; eidx < bufferSize; eidx++)
+                pixels[eidx] = new RGBValue[nFrames];
 
-			// generate all the pixels
-			for (int frameNum = 0; frameNum < nFrames; frameNum++)
+            // generate all the pixels
+            for (int frameNum = 0; frameNum < nFrames; frameNum++)
 			{
 				if (UseBaseColor)
 				{
@@ -421,8 +455,9 @@ namespace VixenModules.Effect.Effect
 				}
 				
 				RenderEffect(frameNum, buffer);
-				// peel off this frames pixels...
-				if (StringOrientation == StringOrientation.Horizontal)
+
+                // peel off this frames pixels...
+                if (StringOrientation == StringOrientation.Horizontal)
 				{
 					int i = 0;
 					for (int y = 0; y < BufferHt; y++)
@@ -449,22 +484,59 @@ namespace VixenModules.Effect.Effect
 					}
 				}
 			}
+
+            var frameTs = new TimeSpan(0, 0, 0, 0, FrameTime);
+            var elements = _elementsCached ? _cachedElements : node.Distinct().ToList();
+            int numElements = elements.Count;
+
+            for (int eidx = 0; eidx < numElements; eidx++)
+            {
+                IIntent intent = new StaticArrayIntent<RGBValue>(frameTs, pixels[eidx], TimeSpan);
+                effectIntents.AddIntentForElement(elements[eidx].Id, intent, startTime);
+            }
+
+            return effectIntents;
+        }
+
+        protected EffectIntents RenderNodeByVideo(IElementNode node, ref EffectIntents effectIntents)
+        {
+            int nFrames = GetNumberFrames();
+            if (nFrames <= 0 | BufferWi == 0 || BufferHt == 0) return new EffectIntents();
+            var buffer = new PixelVideoFrameBuffer(BufferWi, BufferHt, UseBaseColor ? BaseColor : Color.Transparent);
+            TimeSpan startTime = TimeSpan.Zero;
+            
+            // set up array to hold the generated bitmaps
+            BitmapValue[] frameArray = new BitmapValue[nFrames];
+
+			// generate all the pixels in the buffer
+			for (int frameNum = 0; frameNum < nFrames; frameNum++)
+            {
+				buffer.Reset();
+				buffer.BeginUpdates();
+                if (UseBaseColor)
+                {
+                    var level = BaseLevelCurve.GetValue(GetEffectTimeIntervalPosition(frameNum) * 100) / 100;
+                    buffer.ClearBuffer(level);
+                }
+				else
+				{
+					buffer.ClearBuffer();
+				}
+
+				RenderEffect(frameNum, buffer);
+
+				buffer.EndUpdates();
+				frameArray[frameNum] = new BitmapValue(buffer.Bitmap);
+            }
 			
-			// create the intents
-			var frameTs = new TimeSpan(0, 0, 0, 0, FrameTime);
-			var elements = _elementsCached?_cachedElements:node.Distinct().ToList();
-			int numElements = elements.Count;
+            // create the intents
+            IIntent intent = new StaticArrayIntent<BitmapValue>(VixenSystem.DefaultUpdateTimeSpan, frameArray, TimeSpan);
+            effectIntents.AddIntentForElement(node.Element.Id, intent, startTime);
 
-			for (int eidx = 0; eidx < numElements; eidx++)
-			{
-				IIntent intent = new StaticArrayIntent<RGBValue>(frameTs, pixels[eidx], TimeSpan);
-				effectIntents.AddIntentForElement(elements[eidx].Id, intent, startTime);
-			}
+            return effectIntents;
+        }
 
-			return effectIntents;
-		}
-
-		protected double GetEffectTimeIntervalPosition(int frame)
+        protected double GetEffectTimeIntervalPosition(int frame)
 		{
 			double position;
 			if (TimeSpan == TimeSpan.Zero)
@@ -593,6 +665,28 @@ namespace VixenModules.Effect.Effect
 			}
 
 			return newAngle;
-		}
-	}
+        }
+
+        protected bool CheckNodesForVideoProperty()
+        {
+            //Get the property for this node to use the size dimensions.
+            _frameSize = GetElementVideoSize(TargetNodes.FirstOrDefault());
+            VideoElementDetected = !FrameSize.IsEmpty;
+            SetBrowsable("TargetPositioning", FrameSize.IsEmpty);
+            SetBrowsable("Orientation", FrameSize.IsEmpty);
+            TypeDescriptor.Refresh(this);
+            if (TargetPositioning == TargetPositioningType.Video && FrameSize.IsEmpty) TargetPositioning = TargetPositioningType.Strings;
+	        return !_frameSize.IsEmpty;
+        }
+
+        protected Size GetElementVideoSize(IElementNode node)
+        {
+            if (node != null && node.Properties.Contains(VideoDescriptor.ModuleId))
+            {
+                VideoModule videoProperty = node.Properties.Get(VideoDescriptor.ModuleId) as VideoModule;
+                return new Size(videoProperty.Width, videoProperty.Height);
+            }
+            return Size.Empty;
+        }
+    }
 }
