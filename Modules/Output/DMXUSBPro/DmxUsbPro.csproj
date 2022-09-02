@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.50727</ProductVersion>
     <RootNamespace>VixenModules.Controller.DmxUsbPro</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <FileUpgradeFlags />
     <UpgradeBackupLocation />
     <AssemblyTitle>DmxUsbPro</AssemblyTitle>
@@ -14,6 +15,7 @@
     <Copyright>Copyright � Vixen 2011</Copyright>
     <Platforms>x64;x86</Platforms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>$(SolutionDir)\$(Configuration)\Modules\Controller\</OutputPath>
@@ -35,19 +37,28 @@
       <IncludeAssets>None</IncludeAssets>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <ProjectReference Include="..\..\..\Common\Controls\Controls.csproj">
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="NLog" Version="4.7.15">
-      <ExcludeAssets>runtime</ExcludeAssets>
-      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="NLog" Version="4.7.15"/>
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
+	<Target Name="MoveLibs" AfterTargets="Build">
+		<ItemGroup>
+			<NugetFiles Include="@(ReferenceCopyLocalPaths-&gt;HasMetadata('PathInPackage'))">
+				<OutPath>$(OutDir)..\..\Common\%(ReferenceCopyLocalPaths.NuGetPackageId)\%(ReferenceCopyLocalPaths.NuGetPackageVersion)\%(ReferenceCopyLocalPaths.PathInPackage)</OutPath>
+				<DeletePath>$(OutDir)%(ReferenceCopyLocalPaths.DestinationSubPath)</DeletePath>
+			</NugetFiles>
+		</ItemGroup>
+		<ItemGroup>
+			<runtimes Include="$(OutputPath)runtimes\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(runtimes)" DestinationFolder="$(OutDir)..\..\Common\runtimes\%(RecursiveDir)" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(NugetFiles)" DestinationFiles="@(NugetFiles->'%(OutPath)')" />
+		<Delete Files="@(NugetFiles->'%(DeletePath)')" />
+	</Target>
 </Project>

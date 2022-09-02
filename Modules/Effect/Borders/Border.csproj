@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VixenModules.Effect.Borders</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Border</AssemblyTitle>
     <Product>Border</Product>
     <Copyright>Copyright ©  2017</Copyright>

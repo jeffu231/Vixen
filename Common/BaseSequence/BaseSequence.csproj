@@ -1,12 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProductVersion>8.0.30703</ProductVersion>
+    <ProductVersion>3.0</ProductVersion>
     <RootNamespace>Common.BaseSequence</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>BaseSequence</AssemblyTitle>
-    <Company>Toshiba</Company>
-    <Product>BaseSequence</Product>
-    <Copyright>Copyright © Toshiba 2012</Copyright>
+	   <Product>BaseSequence</Product>
+    <Copyright>Copyright © Vixen 2022</Copyright>
     <Platforms>x64;x86</Platforms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>

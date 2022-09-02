@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VixenModules.Effect.Shapes</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Shapes</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Vixen</Product>

@@ -4,8 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.MultiplyColor</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>DimmingCurve</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <AssemblyTitle>DimmingCurve</AssemblyTitle>
     <Product>DimmingCurve</Product>
     <Copyright>Copyright ©  2012</Copyright>
     <Platforms>x64;x86</Platforms>

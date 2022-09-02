@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VixenModules.Effect.Garlands</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Garlands</AssemblyTitle>
     <Product>Garlands</Product>
     <Copyright>Copyright ©  2016</Copyright>

@@ -5,7 +5,7 @@
 		<Platform Condition=" '$(Platform)' == '' ">x86</Platform>
 		<ProductVersion>1.0</ProductVersion>
 		<RootNamespace>VixenModules.OutputFilter.CoarseFineBreakdown</RootNamespace>
-		<TargetFramework>net48</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
 		<AssemblyTitle>CoarseFineBreakdown</AssemblyTitle>
 		<AssemblyName>CoarseFineBreakdown</AssemblyName>
 		<Product>CoarseFineBreakdown</Product>
@@ -28,9 +28,6 @@
 		<OutputPath>..\..\..\Debug64\Modules\OutputFilter\</OutputPath>
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
-	<ItemGroup>
-		<Reference Include="System.Windows.Forms" />
-	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
 			<Private>false</Private>

@@ -5,7 +5,8 @@
 		<Platform Condition=" '$(Platform)' == '' ">x86</Platform>
 		<ProductVersion>1.0</ProductVersion>
 		<RootNamespace>VixenModules.OutputFilter.DimmingFilter</RootNamespace>
-		<TargetFramework>net48</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
 		<AssemblyTitle>DimmingFilter</AssemblyTitle>
 		<AssemblyName>DimmingFilter</AssemblyName>
 		<Product>ColorWheelFilter</Product>
@@ -30,9 +31,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <EmbeddedResource Remove="ColorWheelBreakdownSetup.resx" />
-	</ItemGroup>
-	<ItemGroup>
-		<Reference Include="System.Windows.Forms" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="PanTiltBreakdownSetup.Designer.cs">

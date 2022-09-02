@@ -4,7 +4,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Media.Audio</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Audio</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Vixen</Product>
@@ -37,9 +37,6 @@
       <Name>AudioPlayer</Name>
       <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.IO.Compression" />
   </ItemGroup>
 	<ItemGroup>
     <PackageReference Include="NLog" Version="4.7.15">

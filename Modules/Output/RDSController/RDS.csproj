@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.Output.CommandController</RootNamespace>
     <AssemblyName>RDSController</AssemblyName>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>RDSController</AssemblyTitle>
     <Product>RDSController</Product>
     <Copyright>Copyright ©  2013</Copyright>
@@ -26,14 +27,8 @@
     <OutputPath>..\..\..\Debug64\Modules\Controller\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-	  <Reference Include="System.Web" />
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="RdsSerialPort.cs">
-      <SubType>Component</SubType>
-    </Compile>
+	<ItemGroup>
+    <Compile Update="RdsSerialPort.cs" />
     <Compile Update="SetupForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -68,5 +63,6 @@
       <ExcludeAssets>runtime</ExcludeAssets>
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>Common.ffmpeg</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyTitle>ffmpeg</AssemblyTitle>
     <Product>ffmpeg</Product>
     <Copyright>Copyright ©  2013</Copyright>

@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.LumaKey</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>LumaKey</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Luma Key</Product>
@@ -27,10 +28,7 @@
     <OutputPath>..\..\..\Debug64\Modules\LayerMixingFilter\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>

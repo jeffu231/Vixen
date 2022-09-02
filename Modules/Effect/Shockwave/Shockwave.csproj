@@ -3,7 +3,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.Effect.Shockwave</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Shockwave</AssemblyTitle>
     <Product>Shockwave</Product>
     <Copyright>Copyright ©  2016</Copyright>

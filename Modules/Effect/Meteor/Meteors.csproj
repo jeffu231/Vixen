@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VixenModules.Effect.Meteors</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Meteors</AssemblyTitle>
     <Product>Meteors</Product>
     <Copyright>Copyright ©  2016</Copyright>

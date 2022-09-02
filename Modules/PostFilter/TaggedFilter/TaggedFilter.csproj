@@ -5,7 +5,8 @@
 		<Platform Condition=" '$(Platform)' == '' ">x86</Platform>
 		<ProductVersion>1.0</ProductVersion>
 		<RootNamespace>VixenModules.OutputFilter.TaggedFilter</RootNamespace>
-		<TargetFramework>net48</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
 		<AssemblyTitle>TaggedFilter</AssemblyTitle>
 		<AssemblyName>TaggedFilter</AssemblyName>
 		<Product>FixtureBreakdown</Product>

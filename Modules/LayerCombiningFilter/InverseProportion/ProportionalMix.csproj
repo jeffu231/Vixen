@@ -4,8 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.ProportionalMix</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Proportional Mix</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <AssemblyTitle>Proportional Mix</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Proportional Mix</Product>
     <Copyright>Copyright 2016</Copyright>

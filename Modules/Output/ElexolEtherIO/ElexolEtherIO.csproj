@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Controller.ElexolEtherIO</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>ElexolEtherIO</AssemblyTitle>
     <Product>ElexolEtherIO</Product>
     <Copyright>Copyright ©  2013</Copyright>
@@ -25,10 +26,7 @@
     <OutputPath>..\..\..\Debug64\Modules\Controller\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-	  <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <Compile Update="SetupDialog.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -2,8 +2,8 @@
   <PropertyGroup>
     <RootNamespace>VixenModules.Effect.AudioHelp</RootNamespace>
     <AssemblyName>AudioHelp</AssemblyName>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>AudioHelper</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <AssemblyTitle>AudioHelper</AssemblyTitle>
     <Product>AudioHelper</Product>
     <Copyright>Copyright ©  2014</Copyright>
     <Platforms>x64;x86</Platforms>

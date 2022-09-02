@@ -70,9 +70,18 @@ namespace Vixen.Sys
 
 			Type attributeType = typeof (DataPathAttribute);
 			// Iterate types in the system assembly.
-			foreach (Type type in Assembly.GetExecutingAssembly().GetTypes()) {
-				AddDataPaths(type, attributeType);
+			try
+			{
+				foreach (Type type in Assembly.GetExecutingAssembly().GetTypes())
+				{
+					AddDataPaths(type, attributeType);
+				}
 			}
+			catch (Exception e)
+			{
+				Console.Out.WriteLine(e);
+			}
+			
 		}
 
 		internal static void AddDataPaths(Type owningType, Type pathAttributeType)
@@ -101,7 +110,7 @@ namespace Vixen.Sys
 							FieldInfo fi = (FieldInfo) mi;
 							if (fi.FieldType == typeof (string)) {
 								path = fi.GetValue(null) as string;
-								isWriteable = true;
+								isWriteable = !fi.IsInitOnly;
 							}
 							break;
 					}

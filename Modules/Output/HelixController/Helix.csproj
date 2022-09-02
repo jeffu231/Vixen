@@ -3,8 +3,8 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Output.HelixController</RootNamespace>
     <AssemblyName>HelixController</AssemblyName>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>HelixController</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	  <AssemblyTitle>HelixController</AssemblyTitle>
     <Product>HelixController</Product>
     <Copyright>Copyright ©  2013</Copyright>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>

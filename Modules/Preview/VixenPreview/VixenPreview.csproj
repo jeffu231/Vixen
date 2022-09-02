@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Preview.VixenPreview</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>VixenPreview</AssemblyTitle>
     <Product>VixenPreview</Product>
     <Copyright>Copyright ©  2013</Copyright>
@@ -85,13 +86,6 @@
       <HintPath>..\..\..\Common\Libraries\OpenTK.GLControl.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="GDIPreview\GDIPreviewForm.cs">
@@ -202,21 +196,15 @@
     <Compile Update="VixenPreviewSetup3.Designer.cs">
       <DependentUpon>VixenPreviewSetup3.cs</DependentUpon>
     </Compile>
-    <Compile Update="VixenPreviewSetupDocument.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="VixenPreviewSetupDocument.cs" />
     <Compile Update="VixenPreviewSetupDocument.Designer.cs">
       <DependentUpon>VixenPreviewSetupDocument.cs</DependentUpon>
     </Compile>
-    <Compile Update="VixenPreviewSetupElementsDocument.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="VixenPreviewSetupElementsDocument.cs" />
     <Compile Update="VixenPreviewSetupElementsDocument.Designer.cs">
       <DependentUpon>VixenPreviewSetupElementsDocument.cs</DependentUpon>
     </Compile>
-    <Compile Update="VixenPreviewSetupPropertiesDocument.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="VixenPreviewSetupPropertiesDocument.cs" />
     <Compile Update="VixenPreviewSetupPropertiesDocument.Designer.cs">
       <DependentUpon>VixenPreviewSetupPropertiesDocument.cs</DependentUpon>
     </Compile>

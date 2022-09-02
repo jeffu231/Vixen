@@ -24,9 +24,9 @@ namespace Common.Controls.ColorManagement.ColorPicker
 		private System.Windows.Forms.RadioButton rdSecond_1;
 		private System.Windows.Forms.RadioButton rdSecond_2;
 		private System.Windows.Forms.RadioButton rdSecond_3;
-		private System.Windows.Forms.ContextMenu contextMenu;
-		private System.Windows.Forms.MenuItem ctxHSV_RGB;
-		private System.Windows.Forms.MenuItem ctxHSV_LAB;
+		private System.Windows.Forms.ContextMenuStrip contextMenu;
+		private System.Windows.Forms.ToolStripMenuItem ctxHSV_RGB;
+		private System.Windows.Forms.ToolStripMenuItem ctxHSV_LAB;
 		private System.Windows.Forms.TextBox tbHSV_H;
 		private System.Windows.Forms.TextBox tbHSV_S;
 		private System.Windows.Forms.TextBox tbHSV_V;
@@ -40,9 +40,9 @@ namespace Common.Controls.ColorManagement.ColorPicker
 		private System.Windows.Forms.Label lblSecond_2;
 		private System.Windows.Forms.Label lblSecond_3;
 		private ColorLabel lblColorOut;
-		private System.Windows.Forms.MenuItem separator1;
-		private System.Windows.Forms.MenuItem ctxPrevColor;
-		private System.Windows.Forms.MenuItem ctxCopy;
+		private System.Windows.Forms.ToolStripMenuItem separator1;
+		private System.Windows.Forms.ToolStripMenuItem ctxPrevColor;
+		private System.Windows.Forms.ToolStripMenuItem ctxCopy;
 		private ToolTip toolTip;
 		private GroupBox quickPickBox;
 		private Button blueButton;
@@ -111,12 +111,12 @@ namespace Common.Controls.ColorManagement.ColorPicker
 			this.label1 = new System.Windows.Forms.Label();
 			this.btnCancel = new System.Windows.Forms.Button();
 			this.btnOK = new System.Windows.Forms.Button();
-			this.contextMenu = new System.Windows.Forms.ContextMenu();
-			this.ctxHSV_RGB = new System.Windows.Forms.MenuItem();
-			this.ctxHSV_LAB = new System.Windows.Forms.MenuItem();
-			this.separator1 = new System.Windows.Forms.MenuItem();
-			this.ctxPrevColor = new System.Windows.Forms.MenuItem();
-			this.ctxCopy = new System.Windows.Forms.MenuItem();
+			this.contextMenu = new System.Windows.Forms.ContextMenuStrip();
+			this.ctxHSV_RGB = new System.Windows.Forms.ToolStripMenuItem();
+			this.ctxHSV_LAB = new System.Windows.Forms.ToolStripMenuItem();
+			this.separator1 = new System.Windows.Forms.ToolStripMenuItem();
+			this.ctxPrevColor = new System.Windows.Forms.ToolStripMenuItem();
+			this.ctxCopy = new System.Windows.Forms.ToolStripMenuItem();
 			this.rdHSV_H = new System.Windows.Forms.RadioButton();
 			this.rdHSV_S = new System.Windows.Forms.RadioButton();
 			this.rdHSV_V = new System.Windows.Forms.RadioButton();
@@ -185,7 +185,7 @@ namespace Common.Controls.ColorManagement.ColorPicker
 			// 
 			// contextMenu
 			// 
-			this.contextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+			this.contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripMenuItem[] {
             this.ctxHSV_RGB,
             this.ctxHSV_LAB,
             this.separator1,
@@ -195,32 +195,32 @@ namespace Common.Controls.ColorManagement.ColorPicker
 			// ctxHSV_RGB
 			// 
 			this.ctxHSV_RGB.Checked = true;
-			this.ctxHSV_RGB.Index = 0;
-			this.ctxHSV_RGB.RadioCheck = true;
+			//this.ctxHSV_RGB.Index = 0;
+			this.ctxHSV_RGB.Checked = true;
 			resources.ApplyResources(this.ctxHSV_RGB, "ctxHSV_RGB");
 			this.ctxHSV_RGB.Click += new System.EventHandler(this.ctxOptions_Click);
 			// 
 			// ctxHSV_LAB
 			// 
-			this.ctxHSV_LAB.Index = 1;
-			this.ctxHSV_LAB.RadioCheck = true;
+			//this.ctxHSV_LAB.Index = 1;
+			this.ctxHSV_LAB.Checked = true;
 			resources.ApplyResources(this.ctxHSV_LAB, "ctxHSV_LAB");
 			this.ctxHSV_LAB.Click += new System.EventHandler(this.ctxOptions_Click);
 			// 
 			// separator1
 			// 
-			this.separator1.Index = 2;
+			//this.separator1.Index = 2;
 			resources.ApplyResources(this.separator1, "separator1");
 			// 
 			// ctxPrevColor
 			// 
-			this.ctxPrevColor.Index = 3;
+			//this.ctxPrevColor.Index = 3;
 			resources.ApplyResources(this.ctxPrevColor, "ctxPrevColor");
 			this.ctxPrevColor.Click += new System.EventHandler(this.ctxOptions_Click);
 			// 
 			// ctxCopy
 			// 
-			this.ctxCopy.Index = 4;
+			//this.ctxCopy.Index = 4;
 			resources.ApplyResources(this.ctxCopy, "ctxCopy");
 			this.ctxCopy.Click += new System.EventHandler(this.ctxOptions_Click);
 			// 
@@ -427,7 +427,7 @@ namespace Common.Controls.ColorManagement.ColorPicker
 			resources.ApplyResources(this.lblColorOut, "lblColorOut");
 			this.lblColorOut.BackColor = System.Drawing.Color.WhiteSmoke;
 			this.lblColorOut.Color = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-			this.lblColorOut.ContextMenu = this.contextMenu;
+			this.lblColorOut.ContextMenuStrip = this.contextMenu;
 			this.lblColorOut.ForeColor = System.Drawing.Color.Black;
 			this.lblColorOut.Name = "lblColorOut";
 			this.lblColorOut.OldColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));

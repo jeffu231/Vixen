@@ -3,7 +3,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.Property.Orientation</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>Orientation</AssemblyTitle>
     <Product>Orientation</Product>
     <Copyright>Copyright Vixenlights ©  2018</Copyright>
@@ -24,11 +25,7 @@
     <OutputPath>..\..\..\Debug64\Modules\Property\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <Compile Update="SetupForm.cs">
       <SubType>Form</SubType>
     </Compile>

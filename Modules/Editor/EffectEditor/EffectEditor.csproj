@@ -3,7 +3,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <ProductVersion>9.0.30729</ProductVersion>
     <RootNamespace>VixenModules.Editor.EffectEditor</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWPF>true</UseWPF>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <AssemblyTitle>WPF EffectPropertyEditorGrid</AssemblyTitle>
     <Product>WPF EffectPropertyEditorGrid</Product>
@@ -31,16 +32,7 @@
     <OutputPath>..\..\..\$(Configuration)\Modules\Editor\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <Resource Include="Themes\Images\clear.png" />
     <Resource Include="Themes\Images\search.png" />
   </ItemGroup>
@@ -104,9 +96,7 @@
     <Resource Include="Themes\Images\librarylink.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Expression.Blend.Sdk.WPF" Version="1.0.1">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
+	  <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
     <PackageReference Include="NLog" Version="4.7.15">
       <ExcludeAssets>runtime</ExcludeAssets>
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

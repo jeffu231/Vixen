@@ -3,10 +3,10 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.Effect.Effect</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Bars</AssemblyTitle>
-    <Product>Bars</Product>
-    <Copyright>Copyright ©  2015</Copyright>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
+				<AssemblyTitle>Effect</AssemblyTitle>
+	  <Copyright>Copyright ©  2015</Copyright>
     <Platforms>x64;x86</Platforms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>

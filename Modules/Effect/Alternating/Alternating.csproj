@@ -3,10 +3,9 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.Effect.Alternating</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Stripe</AssemblyTitle>
-    <Product>Stripe</Product>
-    <Copyright>Copyright ©  2013</Copyright>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+    <AssemblyTitle>Alternating</AssemblyTitle>
+	   <Copyright>Copyright ©  2013</Copyright>
     <Platforms>x64;x86</Platforms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>

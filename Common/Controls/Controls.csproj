@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>Common.Controls</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsFroms>true</UseWindowsFroms>
     <AssemblyTitle>Common.Controls</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Vixen</Product>
@@ -43,16 +44,7 @@
       <IncludeAssets>None</IncludeAssets>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <Compile Update="BaseForm.cs" />
     <Compile Update="BaseForm.Designer.cs">
       <DependentUpon>BaseForm.cs</DependentUpon>
@@ -298,6 +290,7 @@
       <ExcludeAssets>runtime</ExcludeAssets>
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
     <PackageReference Include="System.Reactive" Version="4.3.2">
       <IncludeAssets></IncludeAssets>
       <ExcludeAssets>runtime</ExcludeAssets>

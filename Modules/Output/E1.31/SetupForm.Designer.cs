@@ -33,8 +33,8 @@ namespace VixenModules.Output.E131
 
         private CheckBox warningsCheckBox;
 
-        private MainMenu mainMenu;
-        private MenuItem mIHelp;
+        private MenuStrip mainMenu;
+        private ToolStripMenuItem mIHelp;
 
 
         private Label label;
@@ -47,8 +47,8 @@ namespace VixenModules.Output.E131
 			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SetupForm));
 			this.rowManipulationContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.mIHelp = new System.Windows.Forms.MenuItem();
-			this.mainMenu = new System.Windows.Forms.MainMenu(this.components);
+			this.mIHelp = new System.Windows.Forms.ToolStripMenuItem();
+			this.mainMenu = new System.Windows.Forms.MenuStrip();
 			this.warningsCheckBox = new System.Windows.Forms.CheckBox();
 			this.statisticsCheckBox = new System.Windows.Forms.CheckBox();
 			this.eventRepeatCountTextBox = new System.Windows.Forms.TextBox();
@@ -89,7 +89,7 @@ namespace VixenModules.Output.E131
 			// 
 			// mIHelp
 			// 
-			this.mIHelp.Index = -1;
+			//this.mIHelp.Index = -1;
 			this.mIHelp.Text = "&Help";
 			// 
 			// warningsCheckBox
@@ -431,7 +431,7 @@ namespace VixenModules.Output.E131
 			this.Controls.Add(this.okButton);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-			this.Menu = this.mainMenu;
+			this.MainMenuStrip = this.mainMenu;
 			this.MinimumSize = new System.Drawing.Size(397, 519);
 			this.Name = "SetupForm";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;

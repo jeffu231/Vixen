@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <RootNamespace>VixenModules.Effect.Balls</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Balls</AssemblyTitle>
     <Product>Balls</Product>
     <Copyright>Copyright ©  2017</Copyright>

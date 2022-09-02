@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.OutputFilter.ColorBreakdown</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>ColorBreakdown</AssemblyTitle>
     <Product>ColorBreakdown</Product>
     <Copyright>Copyright ©  2012</Copyright>
@@ -25,9 +26,6 @@
     <OutputPath>..\..\..\Debug64\Modules\OutputFilter\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Update="ColorBreakdownItemControl.cs">
       <SubType>UserControl</SubType>

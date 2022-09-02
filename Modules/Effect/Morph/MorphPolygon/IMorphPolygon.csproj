@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ProjectGuid>{699BA63F-E537-4624-A506-D01C14F564BD}</ProjectGuid>
     <RootNamespace>VixenModules.Effect.Morph.MorphPolygon</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Platforms>x64;x86</Platforms>

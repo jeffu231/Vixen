@@ -3,7 +3,8 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.Output.LauncherController</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>LauncherController</AssemblyTitle>
     <Product>LauncherController</Product>
     <Copyright>Copyright ©  2017</Copyright>
@@ -25,10 +26,7 @@
     <OutputPath>..\..\..\Debug64\Modules\Controller\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-	  <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <Compile Update="SetupForm.cs">
       <SubType>Form</SubType>
     </Compile>

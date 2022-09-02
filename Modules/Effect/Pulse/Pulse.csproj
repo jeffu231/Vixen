@@ -4,8 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Effect.Pulse</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Pulse</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <AssemblyTitle>Pulse</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Vixen</Product>
     <Description>Pulse</Description>

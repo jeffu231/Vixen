@@ -4,8 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.IntensityOverlay</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Intensity Overlay</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <AssemblyTitle>Intensity Overlay</AssemblyTitle>
     <Product>Intensity Overlay</Product>
     <Description>Intensity Overlay mixer</Description>
     <Copyright>Copyright 2016</Copyright>

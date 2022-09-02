@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <ProductVersion>9.0.30729</ProductVersion>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Vixen</AssemblyTitle>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+	   <AssemblyTitle>Vixen</AssemblyTitle>
     <Product>Vixen</Product>
     <Description>Vixen</Description>
     <Copyright>Copyright © K.C. Oaks 2005-2013</Copyright>
@@ -18,59 +20,23 @@
     <OutputPath>$(SolutionDir)\Release64\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <OutputPath>..\$(Configuration)\</OutputPath>
+				<OutputPath>$(SolutionDir)\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <OutputPath>..\Debug64\</OutputPath>
+    <OutputPath>$(SolutionDir)\Debug64\</OutputPath>
   </PropertyGroup>
 	<ItemGroup>
-    <Reference Include="Microsoft.CSharp">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System.configuration" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="ImageResource.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ImageResource.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="ImageResource.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ImageResource.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Fonts\DigitalDream.ttf" />
-    <EmbeddedResource Include="Fonts\RadioLand.ttf" />
-    <None Include="Resources\Effect48.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Effect16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Effect64.png" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1">
-      <ExcludeAssets>runtime</ExcludeAssets>
-      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <ExcludeAssets></ExcludeAssets>
+      <IncludeAssets></IncludeAssets>
     </PackageReference>
     <PackageReference Include="NLog" Version="4.7.15">
-      <ExcludeAssets>runtime</ExcludeAssets>
-      <IncludeAssets>compile; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <ExcludeAssets></ExcludeAssets>
+      <IncludeAssets></IncludeAssets>
     </PackageReference>
     <PackageReference Include="Zstandard.Net" Version="1.1.7">
-      <ExcludeAssets>runtime;build</ExcludeAssets>
-      <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <ExcludeAssets></ExcludeAssets>
+      <IncludeAssets></IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
@@ -264,7 +230,23 @@
     <Compile Remove="Sys\Enumerator\MultiStateTimedEnumerator.cs" />
     <Compile Remove="Sys\Enumerator\SingleTimedEnumerator.cs" />
   </ItemGroup>
+	<Target Name="MoveLibs" AfterTargets="Build">
+		<ItemGroup>
+			<NugetFiles Include="@(ReferenceCopyLocalPaths-&gt;HasMetadata('PathInPackage'))">
+				<OutPath>$(Outdir)Common\%(ReferenceCopyLocalPaths.NuGetPackageId)\%(ReferenceCopyLocalPaths.NuGetPackageVersion)\%(ReferenceCopyLocalPaths.PathInPackage)</OutPath>
+				<DeletePath>$(OutDir)%(ReferenceCopyLocalPaths.DestinationSubPath)</DeletePath>
+			</NugetFiles>
+		</ItemGroup>
+		<Copy SourceFiles="@(NugetFiles)" DestinationFiles="@(NugetFiles->'%(OutPath)')" />
+		<Delete Files="@(NugetFiles->'%(DeletePath)')" />
+	</Target>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy &quot;$(SolutionDir)\Release Notes.txt&quot; &quot;$(OutDir)&quot;&#xD;&#xA;copy &quot;$(SolutionDir)\License.txt&quot; &quot;$(OutDir)&quot;&#xD;&#xA;del &quot;$(SolutionDir)\libzstd.dll&quot;" />
   </Target>
+  <ItemGroup>
+    <None Remove="C:\Users\jeffu\.nuget\packages\zstandard.net\1.1.7\build\x64\libzstd.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="C:\Users\jeffu\.nuget\packages\zstandard.net\1.1.7\build\x64\libzstd.dll" />
+  </ItemGroup>
 </Project>

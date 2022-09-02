@@ -5,8 +5,8 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.HighestValueWins</RootNamespace>
     <AssemblyName>HighestValueWins</AssemblyName>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Highest Value Wins</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	  <AssemblyTitle>Highest Value Wins</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Highest Value Wins</Product>
     <Copyright>Copyright 2018</Copyright>

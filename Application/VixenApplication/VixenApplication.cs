@@ -1335,9 +1335,10 @@ namespace VixenApplication
 			Pen borderColor = new Pen(ThemeColorTable.GroupBoxBorderColor, 1);
 			if (ActiveForm != null)
 			{
+				var w = ActiveForm.Width;
 				int extraSpace1 = (int) (30*ScalingTools.GetScaleFactor());
 				int extraSpace2 = (int) (40 * ScalingTools.GetScaleFactor());
-				e.Graphics.DrawLine(borderColor, 0, pictureBox1.Size.Height + extraSpace1, ActiveForm.Width, pictureBox1.Size.Height + extraSpace1);
+				e.Graphics.DrawLine(borderColor, 0, pictureBox1.Size.Height + extraSpace1, w, pictureBox1.Size.Height + extraSpace1);
 				e.Graphics.DrawLine(borderColor, 0, Height - (statusStrip.Height + extraSpace2), Width, Height - (statusStrip.Height + extraSpace2));
 			}
 		}

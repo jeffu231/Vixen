@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.SequenceType.Vixen2x</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>Vixen2x</AssemblyTitle>
     <Company>John McAdams</Company>
     <Product>Vixen</Product>
@@ -37,27 +38,16 @@
       <IncludeAssets>None</IncludeAssets>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.XML" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="CoversionProgressForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+	<ItemGroup>
+    <Compile Update="CoversionProgressForm.cs" />
     <Compile Update="CoversionProgressForm.Designer.cs">
       <DependentUpon>CoversionProgressForm.cs</DependentUpon>
     </Compile>
-    <Compile Update="Vixen2xSequenceImporterChannelMapper.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="Vixen2xSequenceImporterChannelMapper.cs" />
     <Compile Update="Vixen2xSequenceImporterChannelMapper.Designer.cs">
       <DependentUpon>Vixen2xSequenceImporterChannelMapper.cs</DependentUpon>
     </Compile>
-    <Compile Update="Vixen2xSequenceImporterForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="Vixen2xSequenceImporterForm.cs" />
     <Compile Update="Vixen2xSequenceImporterForm.Designer.cs">
       <DependentUpon>Vixen2xSequenceImporterForm.cs</DependentUpon>
     </Compile>

@@ -7,7 +7,8 @@
     <AssemblyName>Dataweb.NShape</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Dataweb.nShape.snk</AssemblyOriginatorKeyFile>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>NShape Core Components</AssemblyTitle>
     <Product>NShape Core Components</Product>
     <Description>NShape Core Components for .NET 2.0</Description>
@@ -147,5 +148,8 @@
     <EmbeddedResource Include="Controllers.ToolSetController.bmp" />
     <EmbeddedResource Include="SqlStore.bmp" />
     <EmbeddedResource Include="XmlStore.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
 </Project>

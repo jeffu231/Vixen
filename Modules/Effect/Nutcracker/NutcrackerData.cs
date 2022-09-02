@@ -1,19 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Configuration;
-using System.Text;
 using System.Runtime.Serialization;
 using System.Drawing;
-using Common.Controls.ColorManagement.ColorModels;
-using Vixen.Module;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.IO;
-using Vixen.Data.Value;
-using Vixen.Intent;
 using Vixen.Sys;
-using Vixen.Module.Effect;
-using Vixen.Sys.Attribute;
 
 namespace VixenModules.Effect.Nutcracker
 {

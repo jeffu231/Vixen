@@ -4,8 +4,9 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.MaskFill</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Mask and Fill</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
+	   <AssemblyTitle>Mask and Fill</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Mask and Fill</Product>
     <Description>Maks and Fill mixer</Description>
@@ -27,10 +28,7 @@
     <OutputPath>..\..\..\Debug64\Modules\LayerMixingFilter\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Vixen.System\Vixen.csproj">
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>
@@ -45,9 +43,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="MaskAndFillSetup.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="MaskAndFillSetup.cs" />
     <Compile Update="MaskAndFillSetup.Designer.cs">
       <DependentUpon>MaskAndFillSetup.cs</DependentUpon>
     </Compile>

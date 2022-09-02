@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Common.Controls.Scaling;
-using Common.Controls.Theme;
+using System.Windows.Forms;
 
 namespace VixenModules.Analysis.BeatsAndBars
 {
@@ -228,7 +221,7 @@ namespace VixenModules.Analysis.BeatsAndBars
 
 		private void ContextTSChanged(object sender, EventArgs e)
 		{
-			MenuItem mi = sender as MenuItem;
+			ToolStripMenuItem mi = sender as ToolStripMenuItem;
 			BeatsPerBar = Convert.ToInt32(mi.Tag);
 
 			if (SettingChanged != null)
@@ -242,18 +235,18 @@ namespace VixenModules.Analysis.BeatsAndBars
 
 		private void ShowContextmenu(Control parentControl, Point displayPoint)
 		{
-			ContextMenu mnuContextMenu = new ContextMenu();
+			ContextMenuStrip mnuContextMenu = new ContextMenuStrip();
 			for (int j = 2; j <= 16; j++)
 			{
-				MenuItem mi = new MenuItem(j.ToString() + "/" + CalcNoteSize(j).ToString(), new EventHandler(ContextTSChanged));
+				ToolStripMenuItem mi = new ToolStripMenuItem(j.ToString() + "/" + CalcNoteSize(j).ToString(), null, new EventHandler(ContextTSChanged));
 				if (j == BeatsPerBar)
 				{
 					mi.Checked = true;
 				}
 				mi.Tag = j;
-				mnuContextMenu.MenuItems.Add(mi);
+				mnuContextMenu.Items.Add(mi);
 			}
-			this.ContextMenu = mnuContextMenu;
+			this.ContextMenuStrip = mnuContextMenu;
 			mnuContextMenu.Show(parentControl, displayPoint);
 		}
 

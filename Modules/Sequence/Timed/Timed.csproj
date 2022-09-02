@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWindowsForms>true</UseWindowsForms>
+	   <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Sequence.Timed</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Timed</AssemblyTitle>
+	   <AssemblyTitle>Timed</AssemblyTitle>
     <Company>K.C. Oaks</Company>
     <Product>Vixen</Product>
     <Copyright>Copyright © K.C. Oaks 2012</Copyright>
@@ -96,11 +97,7 @@
       <IncludeAssets>None</IncludeAssets>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.XML" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <ProjectReference Include="..\..\..\Common\BaseSequence\BaseSequence.csproj">
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>

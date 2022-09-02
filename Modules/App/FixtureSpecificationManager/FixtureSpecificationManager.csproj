@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	  <TargetFramework>net6.0-windows</TargetFramework>
+	  <OutputType>Library</OutputType>
+	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	  <RootNamespace>VixenModules.App.FixtureSpecificationManager</RootNamespace>
 	  <AssemblyTitle>FixtureSpecificationManager</AssemblyTitle>
-	  <Product>Polygon</Product>
 	  <Copyright>Copyright Vixen ©  2020</Copyright>
 	  <Platforms>x64;x86</Platforms>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -25,15 +24,14 @@
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\Vixen.System\Vixen.csproj" />
-	  <ProjectReference Include="..\Fixture\Fixture.csproj">
+	  <PackageReference Include="NLog" Version="4.7.15">
+	    <ExcludeAssets>runtime</ExcludeAssets>
+	  </PackageReference>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Fixture\Fixture.csproj">
 	    <Private>false</Private>
 	    <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
 	  </ProjectReference>
-	</ItemGroup>
-	<ItemGroup>
-	  <Reference Include="PresentationCore" />
-	  <Reference Include="System.Windows" />
-	  <Reference Include="WindowsBase" />
 	</ItemGroup>
 </Project>

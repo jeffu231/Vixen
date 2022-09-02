@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<ProductVersion>1.0.0</ProductVersion>
 		<RootNamespace>Common.AudioPlayer</RootNamespace>
-		<TargetFramework>net48</TargetFramework>
+		<TargetFramework>net6.0-windows</TargetFramework>
 		<AssemblyTitle>AudioPlayer</AssemblyTitle>
 		<Company>Vixen</Company>
 		<Product>AudioPlayer</Product>
@@ -25,10 +25,8 @@
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
-	  <PackageReference Include="CSCore" Version="1.2.1.2">
-		  <ExcludeAssets>runtime</ExcludeAssets>
-		  <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
+	  <PackageReference Include="CSCore" Version="1.2.1.2" />
+	  <PackageReference Include="Microsoft.Win32.SystemEvents" Version="6.0.1" />
 	  <PackageReference Include="NLog" Version="4.7.15">
 		  <ExcludeAssets>runtime</ExcludeAssets>
 		  <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -3,8 +3,9 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <RootNamespace>VixenModules.App.LipSyncApp</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>LipSyncApp</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
+	   <AssemblyTitle>LipSyncApp</AssemblyTitle>
     <Product>LipSyncApp</Product>
     <Copyright>Copyright ©  2014</Copyright>
     <Platforms>x64;x86</Platforms>
@@ -28,46 +29,28 @@
     <DefineConstants>TRACE</DefineConstants>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="LipSyncMapColorCtrl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+	<ItemGroup>
+    <Compile Update="LipSyncMapColorCtrl.cs" />
     <Compile Update="LipSyncMapColorCtrl.Designer.cs">
       <DependentUpon>LipSyncMapColorCtrl.cs</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncMapColorSelect.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncMapColorSelect.cs" />
     <Compile Update="LipSyncMapColorSelect.Designer.cs">
       <DependentUpon>LipSyncMapColorSelect.cs</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncMapMatrixEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncMapMatrixEditor.cs" />
     <Compile Update="LipSyncMapMatrixEditor.Designer.cs">
       <DependentUpon>LipSyncMapMatrixEditor.cs</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncMapSelector.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncMapSelector.cs" />
     <Compile Update="LipSyncMapSelector.Designer.cs">
       <DependentUpon>LipSyncMapSelector.cs</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncMultiPicSelect.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncMultiPicSelect.cs" />
     <Compile Update="LipSyncMultiPicSelect.Designer.cs">
       <DependentUpon>LipSyncMultiPicSelect.cs</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncNodeSelect.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncNodeSelect.cs" />
     <Compile Update="LipSyncNodeSelect.Designer.cs">
       <DependentUpon>LipSyncNodeSelect.cs</DependentUpon>
     </Compile>
@@ -76,15 +59,11 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>LipSyncResources.resx</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncTextConvertFailForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncTextConvertFailForm.cs" />
     <Compile Update="LipSyncTextConvertFailForm.Designer.cs">
       <DependentUpon>LipSyncTextConvertFailForm.cs</DependentUpon>
     </Compile>
-    <Compile Update="LipSyncTextConvertForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="LipSyncTextConvertForm.cs" />
     <Compile Update="LipSyncTextConvertForm.Designer.cs">
       <DependentUpon>LipSyncTextConvertForm.cs</DependentUpon>
     </Compile>

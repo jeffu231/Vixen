@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+	  <TargetFramework>net6.0-windows</TargetFramework>
+	  <UseWindowsForms>true</UseWindowsForms>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	  <RootNamespace>VixenModules.App.Fixture</RootNamespace>
@@ -29,10 +30,5 @@
 	    <Private>false</Private>
 	    <IncludeAssets>None</IncludeAssets>
 	  </ProjectReference>
-	</ItemGroup>
-	<ItemGroup>
-	  <Reference Include="PresentationCore" />
-	  <Reference Include="System.Windows" />
-	  <Reference Include="WindowsBase" />
 	</ItemGroup>
 </Project>

@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using NLog;
 using Vixen.Attributes;
@@ -15,8 +13,6 @@ using Vixen.Sys.Attribute;
 using VixenModules.App.Curves;
 using VixenModules.Effect.Effect.Location;
 using VixenModules.EffectEditor.EffectDescriptorAttributes;
-using VixenModules.Property.Location;
-using VixenModules.Property.Orientation;
 
 namespace VixenModules.Effect.Effect
 {

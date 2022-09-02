@@ -2,8 +2,8 @@
   <PropertyGroup>
     <ProjectGuid>{A9136CB2-83F8-462E-918B-15EA1FB4A431}</ProjectGuid>
     <RootNamespace>VixenModules.Effect.Wave</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Platforms>x64;x86</Platforms>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

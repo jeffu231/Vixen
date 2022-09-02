@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.App.ColorGradients</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>ColorGradients</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Vixen</Product>
@@ -40,9 +41,6 @@
       <Private>false</Private>
       <IncludeAssets>None</IncludeAssets>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="ColorGradientEditor.cs">

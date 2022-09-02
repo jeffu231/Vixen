@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <RootNamespace>VixenModules.Controller.E131</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>J1SysE131_VixenPlugin</AssemblyTitle>
     <Company>Joshua 1 Systems Inc.</Company>
     <Product>J1Sys E1.31 Vixen Plugin</Product>
@@ -44,8 +45,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-	  <Reference Include="System.Windows.Forms" />
-    <Reference Include="TabControlEX">
+	  <Reference Include="TabControlEX">
       <HintPath>..\..\..\Common\Libraries\TabControlEX.dll</HintPath>
       <Private>False</Private>
     </Reference>

@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.App.Curves</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>Curves</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Vixen</Product>
@@ -43,48 +44,27 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="CurveEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="CurveEditor.cs" />
     <Compile Update="CurveEditor.Designer.cs">
       <DependentUpon>CurveEditor.cs</DependentUpon>
     </Compile>
-    <Compile Update="CurveLibrarySelector.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="CurveLibrarySelector.cs" />
     <Compile Update="CurveLibrarySelector.Designer.cs">
       <DependentUpon>CurveLibrarySelector.cs</DependentUpon>
     </Compile>
-    <Compile Update="FunctionGenerator.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="FunctionGenerator.cs" />
     <Compile Update="FunctionGenerator.Designer.cs">
       <DependentUpon>FunctionGenerator.cs</DependentUpon>
     </Compile>
-    <Compile Update="ZedGraph\ZedGraphControl.ContextMenu.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="ZedGraph\ZedGraphControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Update="ZedGraph\ZedGraphControl.ContextMenu.cs" />
+    <Compile Update="ZedGraph\ZedGraphControl.cs" />
     <Compile Update="ZedGraph\ZedGraphControl.Designer.cs">
       <DependentUpon>ZedGraphControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="ZedGraph\ZedGraphControl.Events.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="ZedGraph\ZedGraphControl.Printing.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="ZedGraph\ZedGraphControl.Properties.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Update="ZedGraph\ZedGraphControl.ScrollBars.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
+    <Compile Update="ZedGraph\ZedGraphControl.Events.cs" />
+    <Compile Update="ZedGraph\ZedGraphControl.Printing.cs" />
+    <Compile Update="ZedGraph\ZedGraphControl.Properties.cs" />
+    <Compile Update="ZedGraph\ZedGraphControl.ScrollBars.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CurveEditor.resx">

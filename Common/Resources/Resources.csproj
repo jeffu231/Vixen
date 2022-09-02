@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>Common.Resources</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>Resources</AssemblyTitle>
     <Product>Resources</Product>
     <Copyright>Copyright ©  2013</Copyright>
@@ -531,5 +531,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Resources\clock_go.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
   </ItemGroup>
 </Project>

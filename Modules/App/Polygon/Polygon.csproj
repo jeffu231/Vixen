@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
-    <OutputType>Library</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	  <TargetFramework>net6.0-windows</TargetFramework>
+				<UseWPF>true</UseWPF>
+	  <OutputType>Library</OutputType>
+	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	  <RootNamespace>VixenModules.App.Polygon</RootNamespace>
 	  <AssemblyTitle>Polygon</AssemblyTitle>
 	  <Product>Polygon</Product>
@@ -24,9 +25,4 @@
 		<OutputPath>..\..\..\Debug64\Modules\App\</OutputPath>
 		<DefineConstants>TRACE</DefineConstants>
 	</PropertyGroup>
-	<ItemGroup>
-	  <Reference Include="PresentationCore" />
-	  <Reference Include="System.Windows" />
-	  <Reference Include="WindowsBase" />
-	</ItemGroup>
 </Project>

@@ -4,7 +4,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>Common.StateMach</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyTitle>StateMach</AssemblyTitle>
     <Company>K.C. Oaks</Company>
     <Product>StateMach</Product>

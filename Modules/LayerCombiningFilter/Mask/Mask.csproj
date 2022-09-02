@@ -4,8 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.LayerMixingFilter.Mask</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
-    <AssemblyTitle>Mask</AssemblyTitle>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	  <AssemblyTitle>Mask</AssemblyTitle>
     <Company>Vixen</Company>
     <Product>Mask</Product>
     <Description>Masking filter</Description>

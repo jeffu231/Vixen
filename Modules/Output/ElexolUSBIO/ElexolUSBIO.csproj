@@ -4,7 +4,8 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <RootNamespace>VixenModules.Controller.ElexolUSBIO</RootNamespace>
-    <TargetFramework>net48</TargetFramework>
+	   <TargetFramework>net6.0-windows</TargetFramework>
+	   <UseWindowsForms>true</UseWindowsForms>
     <AssemblyTitle>ElexolUSBIO</AssemblyTitle>
     <Product>ElexolUSBIO</Product>
     <Copyright>Copyright ©  2013</Copyright>
@@ -27,10 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
   </PropertyGroup>
-  <ItemGroup>
-	  <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <Compile Update="SetupDialog.cs">
       <SubType>Form</SubType>
     </Compile>

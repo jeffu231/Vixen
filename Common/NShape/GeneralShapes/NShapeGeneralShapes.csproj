@@ -10,7 +10,7 @@
     <UpgradeBackupLocation />
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\Dataweb.nShape.snk</AssemblyOriginatorKeyFile>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <AssemblyTitle>NShapes General Shapes</AssemblyTitle>
     <Product>NShape General Shapes Library</Product>
     <Description>NShape Basic Shapes for .NET 2.0</Description>
