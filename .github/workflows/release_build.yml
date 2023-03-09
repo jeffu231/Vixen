@@ -40,8 +40,10 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: create a custom version using run number offset by 1000 (run_number + 1000)
+        shell: bash
+        working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          echo "BUILD_NUMBER=$((1000+GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
+          echo BUILD_NUMBER=$(( GITHUB_RUN_NUMBER + 1000 )) >> $GITHUB_ENV
 
       - name: Set variables
         shell: bash
