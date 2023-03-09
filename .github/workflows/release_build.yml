@@ -107,9 +107,6 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         with:
           name: _releaseNotes
-      
-      - name: Move Release Notes into place
-        run: Copy-Item "_releaseNotes\Release Notes.txt" -Destination "Release Notes.txt" -Force
         
       - uses: nuget/setup-nuget@v1
         
@@ -154,10 +151,7 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         with:
           name: _releaseNotes
-      
-      - name: Move Release Notes into place
-        run: Copy-Item "_releaseNotes\Release Notes.txt" -Destination "Release Notes.txt" -Force
-        
+       
       - uses: nuget/setup-nuget@v1
         
       - uses: microsoft/setup-msbuild@v1.1
