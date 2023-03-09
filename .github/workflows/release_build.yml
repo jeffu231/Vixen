@@ -39,7 +39,6 @@ jobs:
     
       - uses: actions/checkout@v3
 
-      steps:
       - name: create a custom version using run number offset by 1000 (run_number + 1000)
         run: |
           echo "BUILD_NUMBER=$((1000+GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
