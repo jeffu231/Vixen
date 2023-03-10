@@ -110,7 +110,7 @@ jobs:
         
       - uses: nuget/setup-nuget@v1
         
-      - uses: microsoft/setup-msbuild@v1.1
+      - uses: microsoft/setup-msbuild@v1.3.1
       
       - name: NuGet Restore
         run: nuget restore Vixen.sln
@@ -121,13 +121,16 @@ jobs:
       - run: dir
         shell: cmd
         
+      - run: dir Release\Setup\${{ needs.setup.outputs.environment }}
+        shell: cmd
+        
       - name: Set installer name in environment
         shell: bash
         run: |
           echo "SETUP_32=$(echo Vixen*Setup-32bit.exe)" >> $GITHUB_ENV
         
       - name: Upload _setup32 artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: _setup32
           path: Release\Setup\${{ needs.setup.outputs.environment }}\${{ env.SETUP_32 }}
@@ -141,7 +144,7 @@ jobs:
     outputs:
       setup_64: ${{ env.SETUP_64 }}
 
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     
@@ -154,7 +157,9 @@ jobs:
        
       - uses: nuget/setup-nuget@v1
         
-      - uses: microsoft/setup-msbuild@v1.1
+      - uses: microsoft/setup-msbuild@v1.3.1
+        with:
+          msbuild-architecture: x64
       
       - name: NuGet Restore
         run: nuget restore Vixen.sln
@@ -165,13 +170,16 @@ jobs:
       - run: dir
         shell: cmd
         
+      - run: dir Release\Setup\${{ needs.setup.outputs.environment }}
+        shell: cmd
+        
       - name: Set installer name in environment
         shell: bash
         run: |
           echo "SETUP_64=$(echo Vixen*Setup-64bit.exe)" >> $GITHUB_ENV
 
       - name: Upload _setup64 artifact
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: _setup64
           path: Release\Setup\${{ needs.setup.outputs.environment }}\${{ env.SETUP_64 }}
