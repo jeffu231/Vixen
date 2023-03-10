@@ -22,7 +22,7 @@ jobs:
   
     if: github.repository == 'VixenLights/Vixen' || github.repository == 'jeffu231/Vixen'
   
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     outputs:
       build_number: ${{ env.BUILD_NUMBER }}
@@ -97,7 +97,7 @@ jobs:
     outputs:
       setup_32: ${{ env.SETUP_32 }}
 
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     
