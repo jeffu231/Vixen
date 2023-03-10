@@ -116,7 +116,7 @@ jobs:
         run: nuget restore Vixen.sln
         
       - name: Build x86
-        run: msbuild Vixen.sln -m -t:Rebuild -p:Configuration=Deploy -p:Platform=x86 -p:Environment:${{ needs.setup.outputs.environment }} -p:App_Version=${{ needs.setup.outputs.app_version }} -p:Assembly_Version=${{ needs.setup.outputs.version }}
+        run: msbuild Vixen.sln -m -t:Rebuild -p:Configuration=Deploy -p:Platform=x86 -p:Environment=${{ needs.setup.outputs.environment }} -p:App_Version=${{ needs.setup.outputs.app_version }} -p:Assembly_Version=${{ needs.setup.outputs.version }}
   
       - run: dir
         shell: cmd
@@ -160,7 +160,7 @@ jobs:
         run: nuget restore Vixen.sln
         
       - name: Build x64
-        run: msbuild Vixen.sln -m -t:Rebuild -p:Configuration=Deploy -p:Platform=x64 -p:Environment:${{ needs.setup.outputs.environment }} -p:App_Version=${{ needs.setup.outputs.app_version }} -p:Assembly_Version=${{ needs.setup.outputs.version }}
+        run: msbuild Vixen.sln -m -t:Rebuild -p:Configuration=Deploy -p:Platform=x64 -p:Environment=${{ needs.setup.outputs.environment }} -p:App_Version=${{ needs.setup.outputs.app_version }} -p:Assembly_Version=${{ needs.setup.outputs.version }}
   
       - run: dir
         shell: cmd
