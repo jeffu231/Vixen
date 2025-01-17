@@ -189,7 +189,7 @@ namespace VixenModules.Preview.VixenPreview.GDIPreview
 		/// <param name="e">Contains the keystroke data</param>
 		private void SendQuickKey(KeyEventArgs e)
 		{
-			Broadcast.Transmit<KeyEventArgs>("KeydownSWF", e);
+			Broadcast.Publish<KeyEventArgs>("KeydownSWF", e);
 		}
 
 		private void HandleContextMenu()
