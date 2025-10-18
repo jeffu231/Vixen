@@ -221,7 +221,7 @@ namespace VixenModules.Preview.VixenPreview
 				_displayForm.UpdatePreview();
 			}
 			catch (Exception e) {
-				Logging.Error("Exception in preview update {0} - {1}", e.Message, e.StackTrace);
+				Logging.Error(e, "Exception in preview update ThreadId: {2} Message: {0} Stacktrace: {1}", e.Message, e.StackTrace, Thread.CurrentThread.ManagedThreadId);
 			}
 			_updateTimeValue.Set(sw.ElapsedMilliseconds);
 		}

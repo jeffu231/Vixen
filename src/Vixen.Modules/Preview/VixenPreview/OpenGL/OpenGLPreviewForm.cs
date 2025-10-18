@@ -771,67 +771,74 @@ namespace VixenModules.Preview.VixenPreview.OpenGL
 		{
 			//Logging.Debug("Entering RenderFrame");
 			if (_isRendering || _formLoading || WindowState == FormWindowState.Minimized) return;
-
+			_isRendering = true;
 			// Initialize the moving head render strategy with the applicable display item shapes
 			InitializeMovingHeadRenderStrategy(OnRenderFrameOnGUIThread);
 
 			UpdateStatusDistance(_camera.Position.Z);
-			_isRendering = true;
 			_sw.Restart();
 			var perspective = CreatePerspective();
 
-			if (VixenSystem.Elements.ElementsHaveState || MovingHeadsMoving())
+			try
 			{
-				//Logging.Debug("Elements have state.");
-				_sw2.Restart();
-				UpdateShapePoints();
-				_pointsUpdate.Set(_sw2.ElapsedMilliseconds);
-				var mvp = Matrix4.Identity * _camera.ViewMatrix * perspective;
-				lock (ContextLock)
+				if (VixenSystem.Elements.ElementsHaveState || MovingHeadsMoving())
 				{
-					glControl.MakeCurrent();
-					ClearScreen();
-
+					//Logging.Debug("Elements have state.");
 					_sw2.Restart();
-					_background.Draw(perspective, _camera.ViewMatrix);
-					_backgroundDraw.Set(_sw2.ElapsedMilliseconds);
-					//Logging.Info($"GL Error: {GL.GetError()}");
-					_sw2.Restart();
+					UpdateShapePoints();
+					_pointsUpdate.Set(_sw2.ElapsedMilliseconds);
+					var mvp = Matrix4.Identity * _camera.ViewMatrix * perspective;
+					lock (ContextLock)
+					{
+						glControl.MakeCurrent();
+						ClearScreen();
 
-					// Render static preview shapes (moving heads)
-					RenderStaticPreviewShapes(perspective, standardFrame);
+						_sw2.Restart();
+						_background.Draw(perspective, _camera.ViewMatrix);
+						_backgroundDraw.Set(_sw2.ElapsedMilliseconds);
+						//Logging.Info($"GL Error: {GL.GetError()}");
+						_sw2.Restart();
 
-					DrawPoints(mvp);
+						// Render static preview shapes (moving heads)
+						RenderStaticPreviewShapes(perspective, standardFrame);
 
-					_pointsDraw.Set(_sw2.ElapsedMilliseconds);
+						DrawPoints(mvp);
 
-					glControl.SwapBuffers();
-					//glControl.Context.MakeCurrent();
+						_pointsDraw.Set(_sw2.ElapsedMilliseconds);
+
+						glControl.SwapBuffers();
+						//glControl.Context.MakeCurrent();
+					}
+				}
+				else
+				{
+					lock (ContextLock)
+					{
+						glControl.MakeCurrent();
+						ClearScreen();
+
+						_sw2.Restart();
+						_background.Draw(perspective, _camera.ViewMatrix);
+						_backgroundDraw.Set(_sw2.ElapsedMilliseconds);
+
+						// Render static preview shapes (moving heads)
+						RenderStaticPreviewShapes(perspective, standardFrame);
+
+						glControl.SwapBuffers();
+						//glControl.Context.MakeCurrent();
+					}
 				}
 			}
-			else
+			catch (Exception ex)
 			{
-				lock (ContextLock)
-				{
-					glControl.MakeCurrent();
-					ClearScreen();
-
-					_sw2.Restart();
-					_background.Draw(perspective, _camera.ViewMatrix);
-					_backgroundDraw.Set(_sw2.ElapsedMilliseconds);
-
-					// Render static preview shapes (moving heads)
-					RenderStaticPreviewShapes(perspective, standardFrame);
-
-					glControl.SwapBuffers();
-					//glControl.Context.MakeCurrent();
-				}
+				var currentThread = Thread.CurrentThread;
+				Logging.Error(ex,
+					$"An exception occured rendering the preview on thread [Thread ID: {currentThread.ManagedThreadId}, Name: {currentThread.Name ?? "N/A"}]");
 			}
 
-			_isRendering = false;
 			_previewUpdate.Set(_sw.ElapsedMilliseconds);
 			UpdateFrameRate();
-
+			_isRendering = false;
 			//Logging.Debug("Exiting RenderFrame");
 		}
 

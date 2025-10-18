@@ -525,8 +525,21 @@ namespace VixenApplication
 			labelRelease.Text = _releaseVersion;
 			labelBuild.Text = _buildVersion;
 
+			//Log OS info
+			OperatingSystem os = Environment.OSVersion;
+
+			Logging.Info($"Platform: {os.Platform}");
+			Logging.Info($"OS Version: {os.Version}");
+			Logging.Info($"Version String: {os.VersionString}");
+			if (!string.IsNullOrEmpty(os.ServicePack))
+			{
+				Logging.Info($"Service Pack: {os.ServicePack}");
+			}
+
+			Logging.Info($"Is 64-bit OS: {Environment.Is64BitOperatingSystem}");
+
 			//Log the runtime versions 
-			var runtimeVersion = FileVersionInfo.GetVersionInfo(typeof(int).Assembly.Location).ProductVersion;
+			var runtimeVersion = Environment.Version;
 			Logging.Info(".NET Runtime is: {0}", runtimeVersion);
 		}
 
