@@ -226,7 +226,7 @@ namespace Vixen.Sys.Managers
 					_updateThreads.Remove(outputDevice.Id);
 				}
 				thread.Stop();
-				thread.WaitForFinish();
+				//thread.WaitForFinish();
 				thread.Error -= _HardwareError;
 			}
 		}

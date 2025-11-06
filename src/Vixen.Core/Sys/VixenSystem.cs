@@ -232,7 +232,7 @@ namespace Vixen.Sys
 				Logging.Info("Reload Requested while save in progress. Waiting 5 ms.");
 				Thread.Sleep(5);
 			}
-			Execution.initInstrumentation();
+			Execution.InitInstrumentation();
 			DataFlow = new DataFlowManager();
 			Elements = new ElementManager();
 			Nodes = new NodeManager();

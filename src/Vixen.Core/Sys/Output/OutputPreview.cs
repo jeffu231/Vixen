@@ -28,6 +28,11 @@ namespace Vixen.Sys.Output
 			//Not needed
 		}
 
+		public async Task UpdateAsync()
+		{
+			await Task.Run(Update);
+		}
+
 		public void Update()
 		{
 			PreviewModule.UpdateState();

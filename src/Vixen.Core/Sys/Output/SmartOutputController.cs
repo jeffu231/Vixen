@@ -57,6 +57,11 @@ namespace Vixen.Sys.Output
 			//Needs implementation
 		}
 
+		public async Task UpdateAsync()
+		{
+			await Task.Run(Update);
+		}
+
 		public void Update()
 		{
 			_outputMediator.LockOutputs();

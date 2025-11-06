@@ -128,6 +128,11 @@ namespace Vixen.Sys.Output
 			}
 		}
 
+		public async Task UpdateAsync()
+		{
+			await Task.Run(Update);
+		}
+
 		public void Update()
 		{
 			_updateStopwatch.Restart();
