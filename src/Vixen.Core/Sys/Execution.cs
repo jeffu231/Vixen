@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using NLog;
 using Vixen.Instrumentation;
 using Vixen.Sys.Instrumentation;
 using Vixen.Sys.Managers;
@@ -8,6 +9,7 @@ namespace Vixen.Sys
 {
 	public class Execution
 	{
+		private static readonly Logger Logging = LogManager.GetCurrentClassLogger();
 		internal static SystemClock SystemTime = new SystemClock();
 		private static ExecutionStateEngine _state;
 		private static MillisecondsValue _executionUpdateTime;
@@ -74,10 +76,13 @@ namespace Vixen.Sys
 				_executionThread = new Thread(UpdateState) { Name = "Execution State Update", IsBackground = true, Priority = ThreadPriority.Highest };
 			}
 			_executionThread.Start();
+			Logging.Info("Execution Startup");
 		}
 
 		internal static void Shutdown()
 		{
+			_executionThread = null;
+			Logging.Info("Execution shutdown");
 		}
 
 		private static ExecutionStateEngine _State
@@ -166,7 +171,8 @@ namespace Vixen.Sys
 				Sleep();
 				_executionSleepTime.Set(_stopwatch.ElapsedMilliseconds - sleepStart);
 			}
-
+			
+			Logging.Info("Execution thread exiting");
 		}
 
 		private static void Sleep()
