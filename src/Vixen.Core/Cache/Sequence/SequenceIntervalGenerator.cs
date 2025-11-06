@@ -111,6 +111,7 @@ namespace Vixen.Cache.Sequence
 		{
 			//Stop the output devices from driving the execution engine.
 			VixenSystem.OutputDeviceManagement.PauseAll();
+			Sys.Execution.CloseExecution();
 			_runningContexts = VixenSystem.Contexts.Where(x => x.IsRunning);
 			foreach (var runningContext in _runningContexts)
 			{
@@ -144,6 +145,7 @@ namespace Vixen.Cache.Sequence
 			}
 			//restart the devices
 			VixenSystem.OutputDeviceManagement.ResumeAll();
+			Sys.Execution.OpenExecution();
 		}
 
 

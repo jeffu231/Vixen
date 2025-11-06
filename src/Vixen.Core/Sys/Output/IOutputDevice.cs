@@ -9,6 +9,7 @@
 		Guid ModuleId { get; }
 		string Name { get; set; }
 		void Update();
+		Task UpdateAsync();
 		/// <summary>
 		/// Only update the commands, do not send them out.
 		/// </summary>

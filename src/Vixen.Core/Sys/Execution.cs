@@ -1,7 +1,6 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
-using Vixen.Execution;
-using Vixen.Execution.Context;
+﻿using System.Diagnostics;
+using NLog;
+using Vixen.Instrumentation;
 using Vixen.Sys.Instrumentation;
 using Vixen.Sys.Managers;
 using Vixen.Sys.State.Execution;
@@ -10,28 +9,38 @@ namespace Vixen.Sys
 {
 	public class Execution
 	{
-		internal static SystemClock SystemTime = new SystemClock();
+		private static readonly Logger Logging = LogManager.GetCurrentClassLogger();
+		internal static SystemClock SystemTime = new();
 		private static ExecutionStateEngine _state;
-		private static ControllerUpdateAdjudicator _updateAdjudicator;
-		private static MillisecondsValue _systemAllowedUpdateTime;
-		private static MillisecondsValue _systemAllowedBlockTime;
-		private static MillisecondsValue _systemDeniedUpdateTime;
-		private static MillisecondsValue _systemDeniedBlockTime;
+		private static MillisecondsValue _executionUpdateTime;
+		private static MillisecondsValue _executionSleepTime;
+		private static MillisecondsValue _executionUpdateOutputDevicesTime;
+		private static MillisecondsValue _executionUpdatePreviewsTime;
+		private static RateValue _executionUpdateRate;
 		private static Stopwatch _stopwatch;
-		private static long lastMs;
-		private static bool lastUpdateClearedStates;
+		private static bool _lastUpdateClearedStates;
+		private static Thread _executionThread;
+		private static readonly double TicksPerMicrosecond = Stopwatch.Frequency / 1_000_000.0;
+		
+		/// <summary>
+		/// Tick time length in [ms]
+		/// </summary>
+		public static readonly double TickLength = 1000.0 / Stopwatch.Frequency;
 
-		public static void initInstrumentation()
+		public static void InitInstrumentation()
 		{
+			_executionUpdateTime = new MillisecondsValue("Execution update time");
+			VixenSystem.Instrumentation.AddValue(_executionUpdateTime);
+			_executionSleepTime = new MillisecondsValue("Execution sleep time");
+			VixenSystem.Instrumentation.AddValue(_executionSleepTime);
+			_executionUpdateOutputDevicesTime = new MillisecondsValue("Execution outputs update time");
+			VixenSystem.Instrumentation.AddValue(_executionUpdateOutputDevicesTime);
+			_executionUpdatePreviewsTime = new MillisecondsValue("Execution previews update time");
+			VixenSystem.Instrumentation.AddValue(_executionUpdatePreviewsTime);
+
+			_executionUpdateRate = new ExecutionEngineRefreshRateValue();
+			VixenSystem.Instrumentation.AddValue(_executionUpdateRate);
 			_stopwatch = Stopwatch.StartNew();
-			_systemAllowedUpdateTime = new MillisecondsValue("System allowed update");
-			VixenSystem.Instrumentation.AddValue(_systemAllowedUpdateTime);
-			_systemAllowedBlockTime = new MillisecondsValue("System allowed block");
-			VixenSystem.Instrumentation.AddValue(_systemAllowedBlockTime);
-			_systemDeniedUpdateTime = new MillisecondsValue("System denied update");
-			VixenSystem.Instrumentation.AddValue(_systemDeniedUpdateTime);
-			_systemDeniedBlockTime = new MillisecondsValue("System denied block");
-			VixenSystem.Instrumentation.AddValue(_systemDeniedBlockTime);
 		}
 
 		// These are system-level events.
@@ -69,20 +78,18 @@ namespace Vixen.Sys
 
 		internal static void Startup()
 		{
-
+			if (_executionThread == null)
+			{
+				_executionThread = new Thread(UpdateState) { Name = "Execution State Update", IsBackground = true, Priority = ThreadPriority.Highest };
+			}
+			_executionThread.Start();
+			Logging.Info("Execution Startup");
 		}
 
 		internal static void Shutdown()
 		{
-		}
-
-		private static ControllerUpdateAdjudicator _UpdateAdjudicator
-		{
-			get
-			{
-				//*** user-configurable threshold value
-				return _updateAdjudicator ?? (_updateAdjudicator = new ControllerUpdateAdjudicator(10));
-			}
+			_executionThread = null;
+			Logging.Info("Execution shutdown");
 		}
 
 		private static ExecutionStateEngine _State
@@ -120,90 +127,121 @@ namespace Vixen.Sys
 			get { return CurrentExecutionTime.ToString("m\\:ss\\.fff"); }
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sequence"></param>
-		/// <param name="contextName"></param>
-		/// <returns>The resulting length of the queue.  0 if it cannot be added.</returns>
-		public static int QueueSequence(ISequence sequence, string contextName = null)
-		{
-			// Look for an execution context with that name.
-			IContext context =
-				VixenSystem.Contexts.FirstOrDefault(x => x.Name.Equals(contextName, StringComparison.OrdinalIgnoreCase));
-
-			if (context == null) {
-				// Context does not exist.
-				// The context must be created and managed since the user is not doing it.
-				context = VixenSystem.Contexts.CreateSequenceContext(new ContextFeatures(ContextCaching.SequenceLevelCaching),
-				                                                     sequence);
-				// When the program ends, release the context.
-				context.ContextEnded += (sender, e) => VixenSystem.Contexts.ReleaseContext(context);
-				context.Start();
-				// It is the sequence playing now.
-				return 1;
-			}
-
-			if (context is IProgramContext) {
-				// Context already exists as a program context.  Add sequence to it.
-				// Can't just add the sequence to the program because it's executing and the
-				// thing executing it has likely cached the state.  Need to go through the
-				// appropriate layers.
-				return (context as IProgramContext).Queue(sequence);
-			}
-
-			// Else context exists, but it's not a program context, so it can't be queued
-			// into.
-			return 0;
-		}
-
-
-		private static ConcurrentDictionary<string, TimeSpan> lastSnapshots = new ConcurrentDictionary<string, TimeSpan>();
-		private static Object lockObject = new Object();
-
-		public static ConcurrentDictionary<string, TimeSpan> UpdateState( out bool allowed)
+		private static void UpdateState()
 		{
 			if (_stopwatch == null)
-				initInstrumentation();
-			long nowMs = _stopwatch.ElapsedMilliseconds;
-			lock (lockObject) {
-				long lockMs = _stopwatch.ElapsedMilliseconds - nowMs;
-				bool allowUpdate = _UpdateAdjudicator.PetitionForUpdate();
-				if (allowUpdate) {
-					bool elementsAffected = VixenSystem.Contexts.Update();
-					if (elementsAffected)
-					{
-						VixenSystem.Elements.Update();
-						lastUpdateClearedStates = false;
-						if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
-						{
-							//Only update the filter chain if we have a controller running
-							VixenSystem.Filters.Update();
-						}
-					}
-					else if(!lastUpdateClearedStates)
-					{
-						//No need to sample all the contexts as we were just told there are no elements effected.
-						VixenSystem.Elements.ClearStates();
-						lastUpdateClearedStates = true;
-						if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
-						{
-							//Only update the filter chain if we have a controller running
-							VixenSystem.Filters.Update();
-						}
-					}
-
-					_systemAllowedBlockTime.Set( lockMs);
-					_systemAllowedUpdateTime.Set(_stopwatch.ElapsedMilliseconds - nowMs - lockMs);
-				}
-				else {
-					_systemDeniedBlockTime.Set(lockMs);
-					_systemDeniedUpdateTime.Set(_stopwatch.ElapsedMilliseconds - nowMs - lockMs);
-				}
-				lastMs = nowMs;
-				allowed = allowUpdate;
-				return lastSnapshots;
+			{
+				InitInstrumentation();
 			}
+
+			while (!IsClosed)
+			{
+				_stopwatch!.Restart();
+				
+				bool elementsAffected = VixenSystem.Contexts.Update();
+				if (elementsAffected)
+				{
+					VixenSystem.Elements.Update();
+					_lastUpdateClearedStates = false;
+					if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
+					{
+						//Only update the filter chain if we have a controller running
+						VixenSystem.Filters.Update();
+					}
+				}
+				else if (!_lastUpdateClearedStates)
+				{
+					//No need to sample all the contexts as we were just told there are no elements effected.
+					VixenSystem.Elements.ClearStates();
+					_lastUpdateClearedStates = true;
+					if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
+					{
+						//Only update the filter chain if we have a controller running
+						VixenSystem.Filters.Update();
+					}
+				}
+
+				UpdatePreviews();
+				UpdateOutputDevicesAsync().Wait();
+				
+				_executionUpdateTime.Set(_stopwatch.ElapsedMilliseconds);
+				_executionUpdateRate.Increment();
+				
+				var sleepStart = _stopwatch.ElapsedMilliseconds;
+				var elapsed = ElapsedHiRes(_stopwatch);
+				double diff = VixenSystem.DefaultUpdateInterval - elapsed;
+
+				Sleep(diff * 1000);
+				_executionSleepTime.Set(_stopwatch.ElapsedMilliseconds - sleepStart);
+			}
+			
+			Logging.Info("Execution thread exiting");
+			}
+
+		private static void Sleep(double microseconds)
+		{
+			
+			long start = Stopwatch.GetTimestamp();
+			// Calculate the exact number of ticks we need to wait
+			long durationTicks = (long)(microseconds * TicksPerMicrosecond);
+			long targetTicks = start + durationTicks;
+
+			// Hybrid approach to save CPU for longer waits.
+			// On Windows, the default system timer resolution is often ~15.6ms (64Hz).
+			// If the sleep is large enough (e.g., > 20ms), we can safely sleep 
+			// part of the way and then spin for the rest.
+			if (microseconds >= 20_000)
+			{
+				// Sleep for the duration minus a safe margin (approx 15-20ms) to allow 
+				// the OS scheduler enough time to wake us up before the target.
+				int msToSleep = (int)(microseconds / 1000) - 16;
+				if (msToSleep > 0)
+				{
+					Thread.Sleep(msToSleep);
+				}
+			}
+
+			// Busy-wait (spin) loop for the remaining precision
+			while (Stopwatch.GetTimestamp() < targetTicks)
+			{
+				// Thread.SpinWait yields to the processor (using PAUSE instruction on x86)
+				// preventing 100% CPU load on the core while maintaining high responsiveness.
+				Thread.SpinWait(1);
+			}
+		
+		}
+
+		private static double ElapsedHiRes(Stopwatch stopwatch)
+		{
+			return stopwatch.ElapsedTicks * TickLength;
+		}
+
+		private static readonly List<Task> UpdateOutputTasks = new();
+		private static async Task UpdateOutputDevicesAsync()
+		{
+			var start = _stopwatch.ElapsedMilliseconds;
+			UpdateOutputTasks.Clear();
+			foreach (var outputController in VixenSystem.OutputControllers.Where(c => c.IsRunning))
+			{
+				var task = outputController.UpdateAsync();
+				UpdateOutputTasks.Add(task);
+			}
+
+			await Task.WhenAll(UpdateOutputTasks);
+			_executionUpdateOutputDevicesTime.Set(_stopwatch.ElapsedMilliseconds - start);
+		}
+
+		private static void UpdatePreviews()
+		{
+			var start = _stopwatch.ElapsedMilliseconds;
+			
+			foreach (var preview in VixenSystem.Previews.Where(p => p.IsRunning))
+			{
+				//We can update synchronous as this will just get posted to the UI thread anyway
+				preview.Update();
+			}
+
+			_executionUpdatePreviewsTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}
 	}
 }

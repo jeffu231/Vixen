@@ -11,7 +11,8 @@ namespace Vixen.Sys.Managers
 {
 	public class ElementManager : IEnumerable<Element>
 	{
-		private readonly MillisecondsValue _elementUpdateTimeValue = new MillisecondsValue("   Elements update");
+		private readonly MillisecondsValue _elementUpdateStateTimeValue = new MillisecondsValue("   Elements state update");
+		private readonly MillisecondsValue _elementClearStateTimeValue = new MillisecondsValue("   Elements state clear");
 		private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
 		private readonly ElementDataFlowAdapterFactory _dataFlowAdapters;
 		private static readonly Logger Logging = LogManager.GetCurrentClassLogger();
@@ -34,8 +35,9 @@ namespace Vixen.Sys.Managers
 			_elementToElementNode = new ConcurrentDictionary<Element, ElementNode>();
 			_dataFlowAdapters = new ElementDataFlowAdapterFactory();
 
-			VixenSystem.Instrumentation.AddValue(_elementUpdateTimeValue);
-			 
+			VixenSystem.Instrumentation.AddValue(_elementUpdateStateTimeValue);
+			VixenSystem.Instrumentation.AddValue(_elementClearStateTimeValue);
+
 		}
 
 		public ElementManager(IEnumerable<Element> elements)
@@ -109,7 +111,7 @@ namespace Vixen.Sys.Managers
 				});
 			}
 			ElementsHaveState = true;
-			_elementUpdateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
+			_elementUpdateStateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
 		}
 
 		public void ClearStates()
@@ -123,7 +125,7 @@ namespace Vixen.Sys.Managers
 				});
 			}
 			ElementsHaveState = false;
-			_elementUpdateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
+			_elementClearStateTimeValue.Set(_stopwatch.ElapsedMilliseconds);
 		}
 
 		private void _AddDataFlowParticipant(Element element)

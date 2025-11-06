@@ -128,6 +128,11 @@ namespace Vixen.Sys.Output
 			}
 		}
 
+		public async Task UpdateAsync()
+		{
+			await Task.Run(Update);
+		}
+
 		public void Update()
 		{
 			_updateStopwatch.Restart();
@@ -183,8 +188,8 @@ namespace Vixen.Sys.Output
 
 		public void Start()
 		{
-			_executionControl.Start();
 			CreatePerformanceValues();
+			_executionControl.Start();
 		}
 
 		public void Stop()
