@@ -1,18 +1,13 @@
-﻿using Vixen.Sys.Output;
+﻿using System.Collections.Concurrent;
+using Vixen.Sys.Output;
 
 namespace Vixen.Sys.Managers
 {
 	internal class OutputDeviceExecution<T> : IOutputDeviceExecution<T>
 		where T : class, IOutputDevice
 	{
-		private Dictionary<Guid, HardwareUpdateThread> _updateThreads;
-		private static NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
-
-		public OutputDeviceExecution()
-		{
-			_updateThreads = new Dictionary<Guid, HardwareUpdateThread>();
-			ExecutionState = ExecutionState.Stopped;
-		}
+		private static readonly NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
+		private readonly ConcurrentDictionary<Guid, T> _outputDevices = new();
 
 		public void Start(T outputDevice)
 		{
@@ -74,7 +69,7 @@ namespace Vixen.Sys.Managers
 			_ResumeAll(outputDevices);
 		}
 
-		public ExecutionState ExecutionState { get; private set; }
+		public ExecutionState ExecutionState { get; private set; } = ExecutionState.Stopped;
 
 		private void _StartAll(IEnumerable<T> outputDevices)
 		{
@@ -118,8 +113,10 @@ namespace Vixen.Sys.Managers
 		private void _Start(T outputDevice)
 		{
 			if (_CanStart(outputDevice)) {
-				try {
-					_StartDevice(outputDevice);
+				try
+				{
+					_outputDevices[outputDevice.Id] = outputDevice;
+					outputDevice.Start();
 				}
 				catch (Exception ex) {
 					Logging.Error(ex, "Error starting device " + outputDevice.Name);
@@ -130,8 +127,10 @@ namespace Vixen.Sys.Managers
 		private void _Stop(T outputDevice)
 		{
 			if (_CanStop(outputDevice)) {
-				try {
-					_StopDevice(outputDevice);
+				try
+				{
+					_outputDevices.Remove(outputDevice.Id, out _);
+					outputDevice.Stop();
 				}
 				catch (Exception ex) {
 					Logging.Error(ex, "Error trying to stop device " + outputDevice.Name);
@@ -143,7 +142,7 @@ namespace Vixen.Sys.Managers
 		{
 			if (_CanPause(outputDevice)) {
 				try {
-					_PauseDevice(outputDevice);
+					outputDevice.Pause();
 				}
 				catch (Exception ex) {
 					Logging.Error(ex, "Error trying to pause device " + outputDevice.Name);
@@ -155,7 +154,7 @@ namespace Vixen.Sys.Managers
 		{
 			if (_CanResume(outputDevice)) {
 				try {
-					_ResumeDevice(outputDevice);
+					outputDevice.Resume();
 				}
 				catch (Exception ex) {
 					Logging.Error(ex, "Error trying to resume device " + outputDevice.Name);
@@ -165,7 +164,7 @@ namespace Vixen.Sys.Managers
 
 		private bool _CanStart(T outputDevice)
 		{
-			return !outputDevice.IsRunning && _InRunningState;
+			return !outputDevice.IsRunning && InRunningState;
 		}
 
 		private bool _CanStop(T outputDevice)
@@ -180,10 +179,10 @@ namespace Vixen.Sys.Managers
 
 		private bool _CanResume(T outputDevice)
 		{
-			return outputDevice.IsRunning && outputDevice.IsPaused && _InRunningState;
+			return outputDevice.IsRunning && outputDevice.IsPaused && InRunningState;
 		}
 
-		private bool _InRunningState
+		private bool InRunningState
 		{
 			get
 			{
@@ -192,48 +191,9 @@ namespace Vixen.Sys.Managers
 			}
 		}
 
-		private void _StartDevice(T outputDevice)
-		{
-			HardwareUpdateThread thread = new HardwareUpdateThread(outputDevice);
-			thread.Error += _HardwareError;
-			lock (_updateThreads) {
-				_updateThreads[outputDevice.Id] = thread;
-			}
-			thread.Start();
-		}
-
-		private void _PauseDevice(T outputDevice)
-		{
-			HardwareUpdateThread thread;
-			if (_updateThreads.TryGetValue(outputDevice.Id, out thread)) {
-				thread.Pause();
-			}
-		}
-
-		private void _ResumeDevice(T outputDevice)
-		{
-			HardwareUpdateThread thread;
-			if (_updateThreads.TryGetValue(outputDevice.Id, out thread)) {
-				thread.Resume();
-			}
-		}
-
-		private void _StopDevice(T outputDevice)
-		{
-			HardwareUpdateThread thread;
-			if (_updateThreads.TryGetValue(outputDevice.Id, out thread)) {
-				lock (_updateThreads) {
-					_updateThreads.Remove(outputDevice.Id);
-				}
-				thread.Stop();
-				//thread.WaitForFinish();
-				thread.Error -= _HardwareError;
-			}
-		}
-
 		private IEnumerable<T> _AllDevices()
 		{
-			return _updateThreads.Values.Select(x => (T) x.OutputDevice);
+			return _outputDevices.Values;
 		}
 
 		private void _DeviceAction(IEnumerable<T> outputDevices, Action<T> action)
@@ -241,14 +201,6 @@ namespace Vixen.Sys.Managers
 			foreach (T outputDevice in outputDevices.ToArray()) {
 				action(outputDevice);
 			}
-		}
-
-		private void _HardwareError(object sender, EventArgs e)
-		{
-			HardwareUpdateThread hardwareUpdateThread = (HardwareUpdateThread) sender;
-			_Stop((T) hardwareUpdateThread.OutputDevice);
-			Logging.Error("Device " + hardwareUpdateThread.OutputDevice.Name +
-			                          " experienced an error during execution and was shutdown.");
 		}
 	}
 }
