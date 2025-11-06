@@ -188,8 +188,8 @@ namespace Vixen.Sys.Output
 
 		public void Start()
 		{
-			_executionControl.Start();
 			CreatePerformanceValues();
+			_executionControl.Start();
 		}
 
 		public void Stop()
