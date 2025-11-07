@@ -28,6 +28,11 @@ namespace Vixen.Sys.Output
 			//Not needed
 		}
 
+		/// <summary>
+		/// Previews are posted back to the UI thread, so most times just calling Update is the best option.
+		/// This method is here to fulfill the interface.
+		/// </summary>
+		/// <returns></returns>
 		public async Task UpdateAsync()
 		{
 			await Task.Run(Update);

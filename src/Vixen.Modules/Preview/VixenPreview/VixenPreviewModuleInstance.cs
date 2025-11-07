@@ -15,7 +15,7 @@ namespace VixenModules.Preview.VixenPreview
 		private VixenPreviewSetup3 _setupForm;
 		private IDisplayForm _displayForm;
 		private static readonly NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
-		private readonly MillisecondsValue _updateTimeValue = new MillisecondsValue("Update time for preview");
+		private MillisecondsValue _updateTimeValue = new MillisecondsValue("Preview {Name} update time");
 		private static bool _systemSupportsOpenGl = false;
 		private static bool _openGLSupportChecked = false;
 
@@ -149,6 +149,9 @@ namespace VixenModules.Preview.VixenPreview
 			set
 			{
 				_name = value;
+				VixenSystem.Instrumentation.RemoveValue(_updateTimeValue);
+				_updateTimeValue = new MillisecondsValue($"Preview {Name} update time");
+				VixenSystem.Instrumentation.AddValue(_updateTimeValue);
 				if (_displayForm != null)
 				{
 					_displayForm.DisplayName = value;

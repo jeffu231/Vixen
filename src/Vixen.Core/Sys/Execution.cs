@@ -14,6 +14,8 @@ namespace Vixen.Sys
 		private static ExecutionStateEngine _state;
 		private static MillisecondsValue _executionUpdateTime;
 		private static MillisecondsValue _executionSleepTime;
+		private static MillisecondsValue _executionUpdateOutputDevicesTime;
+		private static MillisecondsValue _executionUpdatePreviewsTime;
 		private static RateValue _executionUpdateRate;
 		private static Stopwatch _stopwatch;
 		private static bool _lastUpdateClearedStates = false;
@@ -30,7 +32,11 @@ namespace Vixen.Sys
 			VixenSystem.Instrumentation.AddValue(_executionUpdateTime);
 			_executionSleepTime = new MillisecondsValue("Execution sleep time");
 			VixenSystem.Instrumentation.AddValue(_executionSleepTime);
-			
+			_executionUpdateOutputDevicesTime = new MillisecondsValue("Execution outputs update time");
+			VixenSystem.Instrumentation.AddValue(_executionUpdateOutputDevicesTime);
+			_executionUpdatePreviewsTime = new MillisecondsValue("Execution previews update time");
+			VixenSystem.Instrumentation.AddValue(_executionUpdatePreviewsTime);
+
 			_executionUpdateRate = new ExecutionEngineRefreshRateValue();
 			VixenSystem.Instrumentation.AddValue(_executionUpdateRate);
 			_stopwatch = Stopwatch.StartNew();
@@ -127,8 +133,6 @@ namespace Vixen.Sys
 				InitInstrumentation();
 			}
 
-			Task updateOutputTask = Task.CompletedTask;
-			Task updatePreviewTask = Task.CompletedTask;
 			while (!IsClosed)
 			{
 				_stopwatch!.Restart();
@@ -142,10 +146,7 @@ namespace Vixen.Sys
 					{
 						//Only update the filter chain if we have a controller running
 						VixenSystem.Filters.Update();
-						updateOutputTask = UpdateOutputDevicesAsync();
 					}
-
-					updatePreviewTask = UpdatePreviewsAsync();
 				}
 				else if (!_lastUpdateClearedStates)
 				{
@@ -156,14 +157,12 @@ namespace Vixen.Sys
 					{
 						//Only update the filter chain if we have a controller running
 						VixenSystem.Filters.Update();
-						updateOutputTask = UpdateOutputDevicesAsync();
 					}
-
-					updatePreviewTask = UpdatePreviewsAsync();
 				}
 
-				Task.WhenAll(updatePreviewTask, updateOutputTask).Wait();
-
+				UpdatePreviews();
+				UpdateOutputDevicesAsync().Wait();
+				
 				_executionUpdateTime.Set(_stopwatch.ElapsedMilliseconds);
 				_executionUpdateRate.Increment();
 				
@@ -208,6 +207,7 @@ namespace Vixen.Sys
 		private static readonly List<Task> UpdateOutputTasks = new();
 		private static async Task UpdateOutputDevicesAsync()
 		{
+			var start = _stopwatch.ElapsedMilliseconds;
 			UpdateOutputTasks.Clear();
 			foreach (var outputController in VixenSystem.OutputControllers.Where(c => c.IsRunning))
 			{
@@ -216,18 +216,20 @@ namespace Vixen.Sys
 			}
 
 			await Task.WhenAll(UpdateOutputTasks);
+			_executionUpdateOutputDevicesTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}
 
-		private static readonly List<Task> UpdatePreviewTasks = new();
-		private static async Task UpdatePreviewsAsync()
+		private static void UpdatePreviews()
 		{
+			var start = _stopwatch.ElapsedMilliseconds;
+			
 			foreach (var preview in VixenSystem.Previews.Where(p => p.IsRunning))
 			{
-				var task = preview.UpdateAsync();
-				UpdatePreviewTasks.Add(task);
+				//We can update synchronous as this will just get posted to the UI thread anyway
+				preview.Update();
 			}
 
-			await Task.WhenAll(UpdatePreviewTasks);
+			_executionUpdatePreviewsTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}
 	}
 }
