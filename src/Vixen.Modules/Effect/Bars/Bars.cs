@@ -523,7 +523,7 @@ namespace VixenModules.Effect.Bars
 
         protected override void CleanUpRender()
         {
-            // Nothing to clean up
+	        _virtualFrameBuffer = null;
         }
 
         /// <summary>
@@ -583,7 +583,9 @@ namespace VixenModules.Effect.Bars
 	                // Use the larger virtual frame buffer
                     _bufferWi = _length;
                     _bufferHt = _length;
-                }
+                    // Create a virtual frame buffer that is large enough to rotate the original frame buffer within it
+					_virtualFrameBuffer = new PixelFrameBuffer(_bufferWi, _bufferHt);
+				}
             }
             // Otherwise use the original frame buffer
             else
@@ -635,12 +637,13 @@ namespace VixenModules.Effect.Bars
             }
         }
 
-        /// <summary>
-        /// Renders the effect in string mode.
-        /// </summary>
-        /// <param name="frame">Current frame number</param>
-        /// <param name="frameBuffer">Frame buffer to render in</param>
-        protected override void RenderEffect(int frame, IPixelFrameBuffer frameBuffer)
+        private PixelFrameBuffer _virtualFrameBuffer;
+		/// <summary>
+		/// Renders the effect in string mode.
+		/// </summary>
+		/// <param name="frame">Current frame number</param>
+		/// <param name="frameBuffer">Frame buffer to render in</param>
+		protected override void RenderEffect(int frame, IPixelFrameBuffer frameBuffer)
         {
             // Get the rotation angle
             double angle = GetRotationAngle(frame);
@@ -655,26 +658,28 @@ namespace VixenModules.Effect.Bars
             // Otherwise we are rotating the frame buffer
             else
             {
-                // Create a virtual frame buffer that is large enough to rotate the original frame buffer within it
-                IPixelFrameBuffer virtualFrameBuffer = new PixelFrameBuffer(_bufferWi, _bufferHt);
-
+                // init the buffer
+				if(frame > 0) _virtualFrameBuffer.ClearBuffer();
                 // Render the effect in the virtual frame buffer
-                RenderEffectStringsInternal(frame, virtualFrameBuffer);
+                RenderEffectStringsInternal(frame, _virtualFrameBuffer);
 
-                // Loop over the pixels in the original frame buffer
-                for (int x = 0; x < BufferWi; x++)
-                {
-                    for (int y = 0; y < BufferHt; y++)
-                    {
-                        // Get the rotated coordinate
-                        int rotatedX = x;
-                        int rotatedY = y;
-                        GetRotatedPosition(ref rotatedX, ref rotatedY, angle, false);
+                var offset = GetRotatedFrameBufferOffset(false);
+                var rt = GetRotateTransform(angle);
 
-                        // Set the original frame buffer pixel with the color at the rotated coordinate
-                        frameBuffer.SetPixel(x, y, virtualFrameBuffer.GetColorAt(rotatedX, rotatedY));
-                    }
-                }
+				// Loop over the pixels in the original frame buffer
+				for (int x = 0; x < BufferWi; x++)
+				{
+					for (int y = 0; y < BufferHt; y++)
+					{
+						// Get the rotated coordinate
+						int rotatedX = x;
+						int rotatedY = y;
+						GetRotatedPosition(ref rotatedX, ref rotatedY, rt, offset);
+
+						// Set the original frame buffer pixel with the color at the rotated coordinate
+						frameBuffer.SetPixel(x, y, _virtualFrameBuffer.GetColorAt(rotatedX, rotatedY));
+					}
+				}
             }
         }
 
@@ -1754,10 +1759,13 @@ namespace VixenModules.Effect.Bars
             int height)
         {
             // Calculate the position within the tile based on frame movement
-            int movementY = initializeTileYPosition(true, heightOfTile, 0, frame);  
+            int movementY = initializeTileYPosition(true, heightOfTile, 0, frame);
 
-            // Loop over the location nodes
-            foreach (ElementLocation node in frameBuffer.ElementLocations)
+            var offset = GetRotatedFrameBufferOffset(swapXY);
+            var rt = GetRotateTransform(angle);
+
+			// Loop over the location nodes
+			foreach (ElementLocation node in frameBuffer.ElementLocations)
             {
                 // Convert from location based coordinate to string coordinate
                 int x;
@@ -1769,7 +1777,7 @@ namespace VixenModules.Effect.Bars
                 if (angle != 0)
                 {
 					// Rotate the point
-					GetRotatedPosition(ref x, ref y, angle, swapXY);
+					GetRotatedPosition(ref x, ref y, rt, offset);
 
                     // When a rotation is being performed the (logical) frame buffer is enlarged 
 					// to be a square frame buffer large enough to allow the original string frame buffer to
@@ -1874,8 +1882,10 @@ namespace VixenModules.Effect.Bars
                 barThickness,
                 frame);
 
-            // Loop over the location nodes
-            foreach (ElementLocation node in frameBuffer.ElementLocations)
+            var offset = GetRotatedFrameBufferOffset(swapXY);
+            var rt = GetRotateTransform(angle);
+			// Loop over the location nodes
+			foreach (ElementLocation node in frameBuffer.ElementLocations)
             {
                 // Convert from location based coordinate to string coordinate
                 int x;
@@ -1887,7 +1897,7 @@ namespace VixenModules.Effect.Bars
                 if (angle != 0.0)
                 {
                     // Rotate the point by the specified angle
-                    GetRotatedPosition(ref x, ref y, angle, swapXY);
+                    GetRotatedPosition(ref x, ref y, rt, offset);
                 }
 
                 // Look up the color for the point in the repeating tile
@@ -2530,7 +2540,7 @@ namespace VixenModules.Effect.Bars
         /// <summary>
         /// Gets appropriate scale value for the effect settings.
         /// </summary>
-        /// <param name="bufferHt">Height of the dsisplay element</param>
+        /// <param name="bufferHt">Height of the display element</param>
         /// <param name="bufferWi">Width of the display element</param>
         /// <returns>Scale value used to scale effect settings</returns>
         private int GetScaleValue(int bufferHt, int bufferWi)
@@ -2541,46 +2551,45 @@ namespace VixenModules.Effect.Bars
             return scaleValue;
         }
 
+        // ReSharper disable once InconsistentNaming
+        private Point GetRotatedFrameBufferOffset(bool swapXY)
+        {
+	        var offset = new Point();
+	        // If the X and Y are swapped due to the Direction being horizontal
+	        if (swapXY)
+	        {
+		        // Calculate the offset into the virtual frame buffer for the original frame buffer
+		        offset.Y = (_length - BufferWi) / 2;
+		        offset.X = (_length - BufferHt) / 2;
+	        }
+	        else
+	        {
+		        // Calculate the offset into the virtual frame buffer for the original frame buffer
+		        offset.Y = (_length - BufferHt) / 2;
+		        offset.X = (_length - BufferWi) / 2;
+	        }
+
+	        return offset;
+        }
+
         /// <summary>
         /// Rotates the x and y coordinates for the specified angle.
         /// </summary>
         /// <param name="x">X coordinate</param>
         /// <param name="y">Y coordinate</param>
-        /// <param name="angle">Angle to rotate</param>
-        /// <param name="swapXY">True when the X and Y coordinates are swapped due to the Direction being horizontal</param>
+        /// <param name="rt">Rotation Transform to rotate with</param>
+        /// <param name="offset">Frame buffer rotation offset</param>
         // ReSharper disable once InconsistentNaming
-        private void GetRotatedPosition(ref int x, ref int y, double angle, bool swapXY)
+        private static void GetRotatedPosition(ref int x, ref int y, RotateTransform rt, Point offset)
         {
-	        int xOffset;
-	        int yOffset;
-
-            // If the X and Y are swapped due to the Direction being horizontal
-	        if (swapXY)
-	        {
-		        // Calculate the offset into the virtual frame buffer for the original frame buffer
-		        yOffset = (_length - BufferWi) / 2;
-		        xOffset = (_length - BufferHt) / 2;
-	        }
-	        else
-	        {
-		        // Calculate the offset into the virtual frame buffer for the original frame buffer
-		        yOffset = (_length - BufferHt) / 2;
-		        xOffset = (_length - BufferWi) / 2;
-            }
-
-	        // Calculate the center of the square virtual frame buffer
-	        double center = (_length - 1) / 2.0;
-
-	        // Create a rotate transform with the specified angle and center of rotation
-	        RotateTransform rt = new RotateTransform(-angle, center, center);
-
 	        // Create a temporary point
-	        System.Windows.Point tempPoint = new System.Windows.Point();
-
-	        // Initialize the temporary point with the point in actual display element (frame buffer) that
-	        // we are setting
-	        tempPoint.X = x + xOffset;
-	        tempPoint.Y = y + yOffset;
+	        System.Windows.Point tempPoint = new System.Windows.Point
+	        {
+		        // Initialize the temporary point with the point in actual display element (frame buffer) that
+		        // we are setting
+		        X = x + offset.X,
+		        Y = y + offset.Y
+	        };
 
 	        // Transform (rotate) the point
 	        System.Windows.Point transformedPoint = rt.Transform(tempPoint);
@@ -2588,6 +2597,16 @@ namespace VixenModules.Effect.Bars
             // Updated the x and y coordinates for the rotation
             x = (int)Math.Round(transformedPoint.X);
 	        y = (int)Math.Round(transformedPoint.Y);
+        }
+
+        private RotateTransform GetRotateTransform(double angle)
+        {
+	        // Calculate the center of the square virtual frame buffer
+	        double center = (_length - 1) / 2.0;
+
+	        // Create a rotate transform with the specified angle and center of rotation
+	        RotateTransform rt = new RotateTransform(-angle, center, center);
+	        return rt;
         }
 
         #endregion
@@ -2963,7 +2982,7 @@ namespace VixenModules.Effect.Bars
             }
             else
             {
-                int barWi = BufferWi / barCount + 1;
+                int barWi = _bufferWi / barCount + 1;
                 if (barWi < 1) barWi = 1;
                 int halfWi = _bufferWi / 2;
                 int blockWi = colorcnt * barWi;
