@@ -167,36 +167,48 @@ namespace Vixen.Sys
 				_executionUpdateRate.Increment();
 				
 				var sleepStart = _stopwatch.ElapsedMilliseconds;
-				Sleep();
+				var elapsed = ElapsedHiRes(_stopwatch);
+				double diff = VixenSystem.DefaultUpdateInterval - elapsed;
+
+				Sleep(diff * 1000);
 				_executionSleepTime.Set(_stopwatch.ElapsedMilliseconds - sleepStart);
 			}
 			
 			Logging.Info("Execution thread exiting");
 		}
 
-		private static void Sleep()
+		private static void Sleep(double microseconds)
 		{
-			while (true)
+			
+			long start = Stopwatch.GetTimestamp();
+			long ticksPerMicrosecond = Stopwatch.Frequency / 1_000_000;
+			// Calculate the exact number of ticks we need to wait
+			long durationTicks = (long)(microseconds * ticksPerMicrosecond);
+			long targetTicks = start + durationTicks;
+
+			// Hybrid approach to save CPU for longer waits.
+			// On Windows, the default system timer resolution is often ~15.6ms (64Hz).
+			// If the sleep is large enough (e.g., > 20ms), we can safely sleep 
+			// part of the way and then spin for the rest.
+			if (microseconds >= 20_000)
 			{
-				var elapsed = ElapsedHiRes(_stopwatch);
-				double diff = VixenSystem.DefaultUpdateInterval - elapsed;
-				if (diff <= 0f)
-					break;
-
-				if (diff < 1f)
-					Thread.SpinWait(10);
-				else if (diff < 5f)
-					Thread.SpinWait(100);
-				else if (diff < 15f)
-					Thread.Sleep(1);
-				else
-					Thread.Sleep(10);
-
-				if (IsClosed)
+				// Sleep for the duration minus a safe margin (approx 15-20ms) to allow 
+				// the OS scheduler enough time to wake us up before the target.
+				int msToSleep = (int)(microseconds / 1000) - 16;
+				if (msToSleep > 0)
 				{
-					return;
+					Thread.Sleep(msToSleep);
 				}
 			}
+
+			// Busy-wait (spin) loop for the remaining precision
+			while (Stopwatch.GetTimestamp() < targetTicks)
+			{
+				// Thread.SpinWait yields to the processor (using PAUSE instruction on x86)
+				// preventing 100% CPU load on the core while maintaining high responsiveness.
+				Thread.SpinWait(1);
+			}
+		
 		}
 
 		private static double ElapsedHiRes(Stopwatch stopwatch)
