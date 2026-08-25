@@ -125,22 +125,27 @@ public class ExecutionSchedulerTests
 			releaseFrame.Wait(TestContext.Current.CancellationToken);
 		}, metrics);
 		var runTask = Task.Run(scheduler.Run, TestContext.Current.CancellationToken);
-		frameStarted.Wait(TestContext.Current.CancellationToken);
-		Assert.True(frameStarted.IsSet);
+		try
+		{
+			frameStarted.Wait(TestContext.Current.CancellationToken);
+			Assert.True(frameStarted.IsSet);
 
-		// Act
-		var quiesceTask = Task.Run(scheduler.Quiesce, TestContext.Current.CancellationToken);
-		await Task.Yield();
+			// Act
+			var quiesceTask = Task.Run(scheduler.Quiesce, TestContext.Current.CancellationToken);
+			Assert.True(SpinWait.SpinUntil(() => scheduler.IsQuiesced, TimeSpan.FromSeconds(1)));
 
-		// Assert
-		Assert.False(quiesceTask.IsCompleted);
-		releaseFrame.Set();
-		using var lease = await quiesceTask;
-		Assert.Equal(1, metrics.RefreshCount);
-
-		// Cleanup
-		scheduler.Stop();
-		await runTask;
+			// Assert
+			Assert.False(quiesceTask.IsCompleted);
+			releaseFrame.Set();
+			using var lease = await quiesceTask;
+			Assert.Equal(1, metrics.RefreshCount);
+		}
+		finally
+		{
+			releaseFrame.Set();
+			scheduler.Stop();
+			await runTask;
+		}
 	}
 
 	[Fact]
@@ -149,19 +154,27 @@ public class ExecutionSchedulerTests
 		// Arrange
 		using var lifecycleAttempted = new ManualResetEventSlim();
 		using var lifecycleEntered = new ManualResetEventSlim();
-		using var lease = ExecutionFacade.Quiesce();
-		var lifecycleTask = Task.Run(() =>
+		var lease = ExecutionFacade.Quiesce();
+		try
 		{
-			lifecycleAttempted.Set();
-			using var lifecycle = ExecutionFacade.EnterOutputDeviceLifecycle();
-			lifecycleEntered.Set();
-		}, TestContext.Current.CancellationToken);
-		lifecycleAttempted.Wait(TestContext.Current.CancellationToken);
-		Assert.True(lifecycleAttempted.IsSet);
+			var lifecycleTask = Task.Run(() =>
+			{
+				lifecycleAttempted.Set();
+				using var lifecycle = ExecutionFacade.EnterOutputDeviceLifecycle();
+				lifecycleEntered.Set();
+			}, TestContext.Current.CancellationToken);
+			lifecycleAttempted.Wait(TestContext.Current.CancellationToken);
+			Assert.True(lifecycleAttempted.IsSet);
 
-		// Assert
-		Assert.False(lifecycleEntered.Wait(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken));
-		await lifecycleTask;
-		Assert.True(lifecycleEntered.IsSet);
+			// Assert
+			Assert.False(lifecycleEntered.Wait(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken));
+			lease.Dispose();
+			await lifecycleTask;
+			Assert.True(lifecycleEntered.IsSet);
+		}
+		finally
+		{
+			lease.Dispose();
+		}
 	}
 }

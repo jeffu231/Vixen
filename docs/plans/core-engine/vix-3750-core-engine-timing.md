@@ -43,6 +43,12 @@ An operator can verify the result by playing a sequence with controllers and pre
 - Observation: the Visual Studio MSBuild toolchain builds the test project successfully, whereas a normal `dotnet test` build attempts unavailable native C++ project targets in this environment.
   Evidence: `msbuild src/Vixen.Tests/Vixen.Tests.csproj /m /t:Build /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly` completed successfully; the focused `dotnet test --no-build` run passed 6/6.
 
+- Observation: the output lifecycle quiesce test must dispose its writer lease before awaiting the task that is deliberately blocked on its reader scope.
+  Evidence: awaiting the lifecycle task while retaining the lease caused the test to wait indefinitely; releasing the lease first made the individual test pass in 243 ms and the focused suite pass 6/6.
+
+- Observation: the in-flight-frame quiesce test needs to wait until the scheduler has recorded the quiesce request before it releases the frame.
+  Evidence: the former `Task.Yield()` only yielded test scheduling and did not prove `ExecutionScheduler.Quiesce()` had incremented its request count. The test now waits for the internal `IsQuiesced` state and passed individually in 35 ms and as part of the focused suite (6/6).
+
 ## Decision Log
 
 - Decision: The scheduler has one global cadence: `VixenSystem.DefaultUpdateInterval`. Mark per-device `IOutputDevice.UpdateInterval` and `IOutputDevice.UpdateSignaler` obsolete, retain compatible implementations for this release, and do not dispatch a different cadence per device.
@@ -289,3 +295,7 @@ Plan change note (2026-08-25): Marked Milestone 2 complete after integrating lea
 Plan change note (2026-08-25): Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations after the requester confirmed there are no external consumers. Simplified controller dispatch to direct scheduler-owned tasks while retaining the common barrier and per-controller failure isolation.
 
 Plan change note (2026-08-25): Marked Milestone 3 complete after the requester confirmed the full test suite passed. Marked Milestone 4 complete after replacing export close/reopen with nested scheduler quiescence, capturing/restoring output and context behavior, serializing ordinary output lifecycle actions behind the export lease, and removing obsolete Windows multimedia resolution calls. Focused scheduler tests passed 6/6 after a Visual Studio MSBuild build; the normal full CLI run stalled in its existing test host and was stopped.
+
+Plan change note (2026-08-25): Corrected the Milestone 4 lifecycle-gate test so it releases the quiesce lease before awaiting the intentionally blocked lifecycle operation. This preserves the intended assertion and prevents the full test suite from deadlocking.
+
+Plan change note (2026-08-25): Made the Milestone 4 in-flight-frame quiesce test deterministic by exposing internal scheduler quiescence state for test synchronization, replacing a scheduling-dependent yield, and always releasing the blocked frame during cleanup.

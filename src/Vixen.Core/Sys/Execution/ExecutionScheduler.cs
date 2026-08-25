@@ -43,6 +43,17 @@ namespace Vixen.Sys.Engine
 
 		public ExecutionFrameMetrics Metrics { get; }
 
+		/// <summary>
+		/// Gets a value indicating whether ordinary frames are currently prevented from starting.
+		/// </summary>
+		internal bool IsQuiesced
+		{
+			get
+			{
+				lock (_quiescenceSyncRoot) return _quiescenceCount > 0;
+			}
+		}
+
 		public void NotifyActiveConsumerStateChanged()
 		{
 			if (_hasActiveConsumers())
@@ -84,7 +95,7 @@ namespace Vixen.Sys.Engine
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				if (IsQuiesced())
+				if (IsQuiesced)
 				{
 					wasIdle = true;
 					WaitForQuiescenceRelease(cancellationToken);
@@ -177,11 +188,6 @@ namespace Vixen.Sys.Engine
 			catch (OperationCanceledException)
 			{
 			}
-		}
-
-		private bool IsQuiesced()
-		{
-			lock (_quiescenceSyncRoot) return _quiescenceCount > 0;
 		}
 
 		private bool TryBeginFrame()
