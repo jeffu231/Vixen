@@ -6,7 +6,8 @@ namespace Vixen.Module.Preview
 	                                                  IEqualityComparer<IPreviewModuleInstance>,
 	                                                  IEquatable<IPreviewModuleInstance>,
 	                                                  IEqualityComparer<PreviewModuleInstanceBase>,
-	                                                  IEquatable<PreviewModuleInstanceBase>
+	                                                  IEquatable<PreviewModuleInstanceBase>,
+	                                                  Vixen.Sys.Engine.IPreviewFrameRenderer
 	{
 		protected abstract IThreadBehavior ThreadBehavior { get; }
 
@@ -15,11 +16,15 @@ namespace Vixen.Module.Preview
 		public override void Start()
 		{
 			ThreadBehavior.Start();
+			base.Start();
+			base.Resume();
 		}
 
 		public override void Stop()
 		{
 			ThreadBehavior.Stop();
+			base.Stop();
+			base.Resume();
 		}
 
 		public override bool IsRunning
@@ -27,6 +32,13 @@ namespace Vixen.Module.Preview
 			get { return ThreadBehavior.IsRunning; }
 		}
 
+		/// <summary>
+		/// Queues a best-effort render of the current live element state.
+		/// </summary>
+		/// <remarks>
+		/// The execution engine uses its coalescing preview mailbox for frame delivery. This legacy entry point remains for callers
+		/// that request a direct preview update.
+		/// </remarks>
 		public void UpdateState(/*Vixen.Preview.PreviewElementIntentStates elementIntentStates*/)
 		{
 			// Get the data referenced locally so we can get off this thread if need be.
@@ -34,6 +46,22 @@ namespace Vixen.Module.Preview
 			if(IsRunning)
 			{
 				ThreadBehavior.BeginInvoke(Update);
+			}
+		}
+
+		void Vixen.Sys.Engine.IPreviewFrameRenderer.Post(Action callback)
+		{
+			if (IsRunning && !IsPaused)
+			{
+				ThreadBehavior.BeginInvoke(callback);
+			}
+		}
+
+		void Vixen.Sys.Engine.IPreviewFrameRenderer.Render(Vixen.Sys.Engine.PreviewFrameSnapshot snapshot)
+		{
+			if (IsRunning && !IsPaused)
+			{
+				Update();
 			}
 		}
 

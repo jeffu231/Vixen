@@ -225,18 +225,18 @@ namespace Vixen.Sys
 					}
 				}
 
-				UpdatePreviews(previews.Devices);
-				UpdateOutputDevices(frameId, controllers.Devices);
+				UpdateOutputDevices(frameId, controllers.Devices, previews.Devices);
 				
 				_executionUpdateTime.Set(_stopwatch.ElapsedMilliseconds);
 				_executionUpdateRate.Increment();
 				
 		}
 
-		private static void UpdateOutputDevices(long frameId, OutputController[] outputControllers)
+		private static void UpdateOutputDevices(long frameId, OutputController[] outputControllers, OutputPreview[] previews)
 		{
 			var start = _stopwatch.ElapsedMilliseconds;
 			var updateTasks = outputControllers.Select(outputController => Task.Run(() => UpdateController(outputController, frameId))).ToArray();
+			UpdatePreviews(frameId, previews);
 			var failedControllers = Task.WhenAll(updateTasks).GetAwaiter().GetResult().Where(controller => controller != null).ToArray();
 			foreach (var controller in outputControllers.Except(failedControllers))
 			{
@@ -270,14 +270,20 @@ namespace Vixen.Sys
 			}
 		}
 
-		private static void UpdatePreviews(OutputPreview[] previews)
+		private static void UpdatePreviews(long frameId, OutputPreview[] previews)
 		{
 			var start = _stopwatch.ElapsedMilliseconds;
-			
+			var snapshot = new PreviewFrameSnapshot(frameId, Stopwatch.GetTimestamp());
 			foreach (var preview in previews)
 			{
-				//We can update synchronous as this will just get posted to the UI thread anyway
-				preview.Update();
+				try
+				{
+					preview.PublishFrame(snapshot);
+				}
+				catch (Exception exception)
+				{
+					Logging.Error(exception, "Preview {0} failed to accept frame {1}.", preview.Name, frameId);
+				}
 			}
 
 			_executionUpdatePreviewsTime.Set(_stopwatch.ElapsedMilliseconds - start);

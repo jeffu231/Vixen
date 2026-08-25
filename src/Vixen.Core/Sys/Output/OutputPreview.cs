@@ -10,6 +10,7 @@ namespace Vixen.Sys.Output
 		private IHardware _executionControl;
 		private IOutputModuleConsumer<IPreviewModuleInstance> _outputModuleConsumer;
 		private int? _updateInterval;
+		private Vixen.Sys.Engine.PreviewFrameMailbox _frameMailbox;
 
 		internal OutputPreview(Guid id, string name, IHardware executionControl,
 		                       IOutputModuleConsumer<IPreviewModuleInstance> outputModuleConsumer)
@@ -31,6 +32,17 @@ namespace Vixen.Sys.Output
 		public void Update()
 		{
 			PreviewModule.UpdateState();
+		}
+
+		/// <summary>
+		/// Publishes the latest execution-frame token without waiting for the preview UI to render.
+		/// </summary>
+		/// <remarks>
+		/// Rendering reads the live element state when the preview UI callback runs. Intermediate frame tokens may be coalesced.
+		/// </remarks>
+		internal void PublishFrame(Vixen.Sys.Engine.PreviewFrameSnapshot snapshot)
+		{
+			FrameMailbox.Publish(snapshot);
 		}
 
 		public Guid Id { get; private set; }
@@ -77,11 +89,13 @@ namespace Vixen.Sys.Output
 		public void Stop()
 		{
 			_executionControl.Stop();
+			_frameMailbox?.Invalidate();
 		}
 
 		public void Pause()
 		{
 			_executionControl.Pause();
+			_frameMailbox?.Invalidate();
 		}
 
 		public void Resume()
@@ -117,6 +131,18 @@ namespace Vixen.Sys.Output
 		public IPreview PreviewModule
 		{
 			get { return _outputModuleConsumer.Module; }
+		}
+
+		private Vixen.Sys.Engine.PreviewFrameMailbox FrameMailbox => _frameMailbox ??= CreateFrameMailbox();
+
+		private Vixen.Sys.Engine.PreviewFrameMailbox CreateFrameMailbox()
+		{
+			if (_outputModuleConsumer.Module is not Vixen.Sys.Engine.IPreviewFrameRenderer renderer)
+			{
+				throw new InvalidOperationException($"Preview module '{Name}' does not support frame publication.");
+			}
+
+			return new Vixen.Sys.Engine.PreviewFrameMailbox(renderer.Post, renderer.Render);
 		}
 	}
 }

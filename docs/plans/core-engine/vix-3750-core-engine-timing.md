@@ -18,7 +18,7 @@ An operator can verify the result by playing a sequence with controllers and pre
 - [x] (2026-08-25) Resolved product decisions with the requester: per-device cadence is deprecated; controller failures retry at most five times; export owns a quiesced state and restores prior running/paused state; MMCSS is deferred until measurements justify it.
 - [x] (2026-08-25) Milestone 1: Added the internal scheduler, injectable timer abstraction, absolute-deadline calculator, Windows high-resolution/fallback timer, frame metrics/instrumentation values, and 13 deterministic tests. The focused test command passed 13/13 and the full `dotnet test src/Vixen.Tests/Vixen.Tests.csproj --no-build --no-restore` suite passed 503/503. Existing unrelated build warnings remain, including LiteDB `NU1904`.
 - [x] (2026-08-25) Milestone 2: Routed controller and preview lifecycle through immutable leased active snapshots. Device start/resume publishes only after its module operation succeeds; pause/stop unpublishes and waits for current frame leases before invoking the module. The execution loop now starts all active controller sends concurrently, waits at one barrier, isolates failures, and removes a controller after five consecutive failed frames. Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations. User confirmed the full tests pass without a Rider console window; `dotnet build src/Vixen.Core/Vixen.Core.csproj --no-restore` also passed with three existing unrelated warnings.
-- [ ] Milestone 3: Replace queued preview updates with coalescing latest-state publication.
+- [ ] Milestone 3: Implemented coalesced live-state preview publication with per-preview mailboxes, invalidation, and deterministic mailbox tests. `Vixen.Core` builds successfully; awaiting focused Rider test execution because the CLI test project is blocked by missing existing module reference assemblies and native C++ MSBuild targets in this environment.
 - [ ] Milestone 4: Make opening, closing, pause, and export use scheduler quiescence safely.
 - [ ] Milestone 5: Deprecate obsolete per-device cadence APIs; add fault handling, instrumentation UI integration, and performance evidence.
 - [ ] Milestone 6: Apply required project skills, run full validation, manually verify, and update this plan's outcome sections.
@@ -65,6 +65,10 @@ An operator can verify the result by playing a sequence with controllers and pre
 - Decision: Keep the planned `src/Vixen.Core/Sys/Execution/` directory, but use namespace `Vixen.Sys.Engine` for its types.
   Rationale: `Vixen.Sys.Execution` is already the existing static engine facade type. C# rejects a child namespace with the same qualified name, while `Vixen.Sys.Engine` clearly identifies the internal scheduling implementation and avoids a public API rename.
   Date/Author: 2026-08-25 / implementation session.
+
+- Decision: Preview frame publication carries only an immutable frame ID and publication timestamp. The preview UI renders the live `VixenSystem.Elements` state when its coalesced callback executes; it does not receive a copied element-state collection.
+  Rationale: The requester selected live reads from the element state latched by the engine. Current GDI and OpenGL preview implementations already read `VixenSystem.Elements` during `UpdatePreview`, so a collection copy would add allocation and a competing state-ownership model without changing their render input.
+  Date/Author: 2026-08-25 / requester and implementation session.
 
 ## Outcomes & Retrospective
 
