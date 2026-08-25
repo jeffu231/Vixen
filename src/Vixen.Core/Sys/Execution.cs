@@ -27,12 +27,6 @@ namespace Vixen.Sys
 		private static readonly Lock ExecutionSchedulerSyncRoot = new();
 		private static readonly Dictionary<Guid, int> ControllerFailureCounts = new();
 		private static readonly ConcurrentQueue<OutputController> ControllersToStop = new();
-		private static readonly double TicksPerMicrosecond = Stopwatch.Frequency / 1_000_000.0;
-		
-		/// <summary>
-		/// Tick time length in [ms]
-		/// </summary>
-		public static readonly double TickLength = 1000.0 / Stopwatch.Frequency;
 
 		public static void InitInstrumentation()
 		{
@@ -124,6 +118,14 @@ namespace Vixen.Sys
 				_executionThread = null;
 			}
 			Logging.Info("Execution shutdown");
+		}
+
+		internal static void NotifyActiveConsumerStateChanged()
+		{
+			lock (ExecutionSchedulerSyncRoot)
+			{
+				_executionScheduler?.NotifyActiveConsumerStateChanged();
+			}
 		}
 
 		private static ExecutionStateEngine _State
@@ -224,55 +226,17 @@ namespace Vixen.Sys
 				}
 
 				UpdatePreviews(previews.Devices);
-				UpdateOutputDevices(controllers.Devices);
+				UpdateOutputDevices(frameId, controllers.Devices);
 				
 				_executionUpdateTime.Set(_stopwatch.ElapsedMilliseconds);
 				_executionUpdateRate.Increment();
 				
 		}
 
-		private static void Sleep(double microseconds)
-		{
-			
-			long start = Stopwatch.GetTimestamp();
-			// Calculate the exact number of ticks we need to wait
-			long durationTicks = (long)(microseconds * TicksPerMicrosecond);
-			long targetTicks = start + durationTicks;
-
-			// Hybrid approach to save CPU for longer waits.
-			// On Windows, the default system timer resolution is often ~15.6ms (64Hz).
-			// If the sleep is large enough (e.g., > 20ms), we can safely sleep 
-			// part of the way and then spin for the rest.
-			if (microseconds >= 20_000)
-			{
-				// Sleep for the duration minus a safe margin (approx 15-20ms) to allow 
-				// the OS scheduler enough time to wake us up before the target.
-				int msToSleep = (int)(microseconds / 1000) - 16;
-				if (msToSleep > 0)
-				{
-					Thread.Sleep(msToSleep);
-				}
-			}
-
-			// Busy-wait (spin) loop for the remaining precision
-			while (Stopwatch.GetTimestamp() < targetTicks)
-			{
-				// Thread.SpinWait yields to the processor (using PAUSE instruction on x86)
-				// preventing 100% CPU load on the core while maintaining high responsiveness.
-				Thread.SpinWait(1);
-			}
-		
-		}
-
-		private static double ElapsedHiRes(Stopwatch stopwatch)
-		{
-			return stopwatch.ElapsedTicks * TickLength;
-		}
-
-		private static void UpdateOutputDevices(OutputController[] outputControllers)
+		private static void UpdateOutputDevices(long frameId, OutputController[] outputControllers)
 		{
 			var start = _stopwatch.ElapsedMilliseconds;
-			var updateTasks = outputControllers.Select(outputController => Task.Run(() => UpdateController(outputController))).ToArray();
+			var updateTasks = outputControllers.Select(outputController => Task.Run(() => UpdateController(outputController, frameId))).ToArray();
 			var failedControllers = Task.WhenAll(updateTasks).GetAwaiter().GetResult().Where(controller => controller != null).ToArray();
 			foreach (var controller in outputControllers.Except(failedControllers))
 			{
@@ -292,7 +256,7 @@ namespace Vixen.Sys
 			_executionUpdateOutputDevicesTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}
 
-		private static OutputController UpdateController(OutputController outputController)
+		private static OutputController UpdateController(OutputController outputController, long frameId)
 		{
 			try
 			{
@@ -301,7 +265,7 @@ namespace Vixen.Sys
 			}
 			catch (Exception exception)
 			{
-				Logging.Error(exception, "Controller {0} failed while consuming the frame.", outputController.Name);
+				Logging.Error(exception, "Controller {0} failed while consuming frame {1}.", outputController.Name, frameId);
 				return outputController;
 			}
 		}

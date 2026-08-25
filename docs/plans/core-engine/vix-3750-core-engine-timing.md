@@ -17,7 +17,7 @@ An operator can verify the result by playing a sequence with controllers and pre
 - [x] (2026-08-25) Read `.agents/PLANS.md`, `docs/reviews/vix-3750-core-engine-timing-review.md`, and the current execution, output-device, export, context, lifecycle, and instrumentation code.
 - [x] (2026-08-25) Resolved product decisions with the requester: per-device cadence is deprecated; controller failures retry at most five times; export owns a quiesced state and restores prior running/paused state; MMCSS is deferred until measurements justify it.
 - [x] (2026-08-25) Milestone 1: Added the internal scheduler, injectable timer abstraction, absolute-deadline calculator, Windows high-resolution/fallback timer, frame metrics/instrumentation values, and 13 deterministic tests. The focused test command passed 13/13 and the full `dotnet test src/Vixen.Tests/Vixen.Tests.csproj --no-build --no-restore` suite passed 503/503. Existing unrelated build warnings remain, including LiteDB `NU1904`.
-- [ ] Milestone 2: Route controller lifecycle through active snapshots and a parallel frame barrier.
+- [x] (2026-08-25) Milestone 2: Routed controller and preview lifecycle through immutable leased active snapshots. Device start/resume publishes only after its module operation succeeds; pause/stop unpublishes and waits for current frame leases before invoking the module. The execution loop now starts all active controller sends concurrently, waits at one barrier, isolates failures, and removes a controller after five consecutive failed frames. Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations. User confirmed the full tests pass without a Rider console window; `dotnet build src/Vixen.Core/Vixen.Core.csproj --no-restore` also passed with three existing unrelated warnings.
 - [ ] Milestone 3: Replace queued preview updates with coalescing latest-state publication.
 - [ ] Milestone 4: Make opening, closing, pause, and export use scheduler quiescence safely.
 - [ ] Milestone 5: Deprecate obsolete per-device cadence APIs; add fault handling, instrumentation UI integration, and performance evidence.
@@ -28,14 +28,17 @@ An operator can verify the result by playing a sequence with controllers and pre
 - Observation: `OutputDeviceExecution<T>` already keeps a private dictionary of started devices, but `Execution.UpdateState` ignores it and instead enumerates all configured controllers and previews by `IsRunning`.
   Evidence: `src/Vixen.Core/Sys/Managers/OutputDeviceExecution.cs` updates `_outputDevices` around `Start`/`Stop`; `src/Vixen.Core/Sys/Execution.cs` currently uses `VixenSystem.OutputControllers.Where(c => c.IsRunning)` and `VixenSystem.Previews.Where(p => p.IsRunning)`.
 
-- Observation: the existing `IOutputDevice.UpdateAsync()` methods are only `Task.Run(Update)` wrappers and the preview implementation is not in the controller barrier.
-  Evidence: `src/Vixen.Core/Sys/Output/OutputController.cs` and `OutputPreview.cs` both use the wrapper; `Execution.UpdatePreviews` calls `Update()` directly.
+- Observation: the initial POC's `IOutputDevice.UpdateAsync()` methods were only `Task.Run(Update)` wrappers, and no production call site used them.
+  Evidence: repository-wide search found only the interface declaration and implementations on `OutputController`, `SmartOutputController`, and `OutputPreview`; the scheduler dispatches synchronous `UpdateFrame()` work directly.
 
 - Observation: `Vixen.Core` already grants `InternalsVisibleTo` to `Vixen.Tests`, allowing focused tests for the internal scheduler without making timing implementation types public module APIs.
   Evidence: `src/Vixen.Core/Vixen.Core.csproj` contains `<InternalsVisibleTo Include="Vixen.Tests" />`.
 
 - Observation: C# cannot define the `Vixen.Sys.Execution` namespace while `Vixen.Sys.Execution` is already a type.
   Evidence: the first Milestone 1 build failed with `CS0101: The namespace 'Vixen.Sys' already contains a definition for 'Execution'`.
+
+- Observation: an active-snapshot change must wake the scheduler only after releasing the device manager lock. The scheduler refreshes its active-consumer predicate while handling the notification, which also acquires the manager lock.
+  Evidence: `OutputDeviceExecution<T>` changes `_activeDevices` under `_syncRoot` and then calls `Execution.NotifyActiveConsumerStateChanged()` before waiting for outstanding leases.
 
 ## Decision Log
 
@@ -55,9 +58,9 @@ An operator can verify the result by playing a sequence with controllers and pre
   Rationale: MMCSS affects scheduling eligibility, not timer precision; the prior helper registers the wrong thread and cannot reliably revert it. The requester explicitly deferred it pending measurements.
   Date/Author: 2026-08-25 / requester and planning agent.
 
-- Decision: Keep controller frame consumption internal for this ticket. The scheduler uses an internal controller consumer/legacy adapter that executes today's synchronous `OutputController.Update()` once per frame on scheduler-owned tasks. Do not make every output module add a fake async wrapper. Preserve the current public `IOutputDevice.Update()` and `UpdateAsync()` signatures for compatibility; the central scheduler must not depend on `UpdateAsync()`.
-  Rationale: Existing controller module instances expose synchronous `UpdateState` only. An internal adapter provides true inter-controller parallel dispatch without prematurely committing module authors to a public asynchronous output-completion contract.
-  Date/Author: 2026-08-25 / planning agent, based on current module surface and review requirements.
+- Decision: Remove the initial POC's public `IOutputDevice.UpdateAsync()` member and its built-in implementations. The execution engine directly creates one task per selected synchronous controller and waits for their common frame barrier.
+  Rationale: The requester confirmed there are no external consumers, and the member only wrapped synchronous work in `Task.Run`. Removing it avoids retaining a misleading asynchronous API while preserving concurrent controller dispatch where it belongs.
+  Date/Author: 2026-08-25 / requester and implementation session.
 
 - Decision: Keep the planned `src/Vixen.Core/Sys/Execution/` directory, but use namespace `Vixen.Sys.Engine` for its types.
   Rationale: `Vixen.Sys.Execution` is already the existing static engine facade type. C# rejects a child namespace with the same qualified name, while `Vixen.Sys.Engine` clearly identifies the internal scheduling implementation and avoids a public API rename.
@@ -65,7 +68,7 @@ An operator can verify the result by playing a sequence with controllers and pre
 
 ## Outcomes & Retrospective
 
-Milestone 1 established the timing foundation but does not replace the live legacy execution loop yet; Milestone 2 performs that integration. The new `ExecutionScheduler` uses an injected active-consumer predicate and frame delegate, supports immediate idle-to-active frames, absolute deadlines, interval-boundary resets, cancellation/wake, a 500-microsecond maximum final spin, and an internal metrics set. `WindowsHighResolutionExecutionTimer` requests only timer modify/synchronize access and falls back to process-scoped one-millisecond timer resolution when high-resolution timer creation is unavailable. The focused suite passed 13/13. At full completion, record measured 25 ms and 50 ms results, final test totals, any timer fallback observations, deviations from this plan, and whether the data supports a follow-up MMCSS experiment.
+Milestones 1 and 2 establish the timing foundation and route live controller output through it. The new `ExecutionScheduler` uses an injected active-consumer predicate and frame delegate, supports immediate idle-to-active frames, absolute deadlines, interval-boundary resets, cancellation/wake, a 500-microsecond maximum final spin, and an internal metrics set. Active-device snapshots now hold frame leases, so pause and stop first prevent future dispatch and then wait for selected work to finish. The execution loop directly launches every selected controller's synchronous frame update before waiting for the common barrier; failures are isolated for the five-consecutive-failure policy. The unused POC `IOutputDevice.UpdateAsync()` API was removed. `WindowsHighResolutionExecutionTimer` requests only timer modify/synchronize access and falls back to process-scoped one-millisecond timer resolution when high-resolution timer creation is unavailable. The focused Milestone 1 suite passed 13/13; the requester confirmed the full suite passed after the Rider-console test adjustment. At full completion, record measured 25 ms and 50 ms results, final test totals, any timer fallback observations, deviations from this plan, and whether the data supports a follow-up MMCSS experiment.
 
 ## Context and Orientation
 
@@ -107,7 +110,7 @@ Extend `IOutputDeviceExecution<T>` and `OutputDeviceExecution<T>` with an intern
 
 Make start transactional in `BasicOutputModuleExecutionControl` and `OutputDeviceExecution<T>`: call module `Start()` first; only on success set running/not-paused state and publish the device to the active immutable snapshot. If it throws, log the failure, leave it unpublished and not running, and do not create controller instrumentation that suggests a healthy device. For stop, atomically remove the device from future snapshots first, signal scheduler wake, wait until the scheduler reports no in-flight frame holds that device, then invoke module `Stop()` and clear lifecycle state. Pause removes the device from future snapshots and waits for any selected frame to finish before invoking module `Pause`; resume invokes module `Resume()` successfully before republishing it. Apply the same lifecycle guarantees to previews, although preview callbacks remain non-blocking and must be invalidated or ignored after stop.
 
-Define internal `IControllerFrameConsumer` plus a scheduler-owned legacy adapter around `OutputController`. Its operation accepts `frameId` and shutdown cancellation and returns a task whose completion means command generation and the controller module's current synchronous `UpdateState` call have returned. The adapter creates one `Task.Run` per active controller before awaiting any task. It checks cancellation before starting legacy synchronous work but never assumes a synchronous module can be cancelled mid-send. Do not use the existing public `IOutputDevice.UpdateAsync()` in the scheduler and do not await inside a controller `foreach`.
+The execution loop creates one `Task.Run` per active `OutputController` before awaiting their common frame barrier. Each task completes only after command generation and the controller module's current synchronous `UpdateState` call have returned. It may not assume a synchronous module can be cancelled mid-send, and it may not await inside a controller `foreach`. The initial POC's public `IOutputDevice.UpdateAsync()` member is removed rather than reused.
 
 In `ExecutionScheduler`, snapshot active controllers and previews separately before calculating engine state. Update contexts, elements, and filters exactly once. Filters run only when at least one controller is active, matching the present behavior. Give every frame a monotonically increasing ID. Start every controller operation from the snapshot, publish the preview frame through Milestone 3's non-blocking path, and await the local `Task[]` with `Task.WhenAll`. Per-controller exception handling returns a result rather than allowing an exception to end the scheduler; it logs controller ID/name/frame ID, increments consecutive failures, and permits retry. On the fifth consecutive failure, request the output manager to stop and unpublish that controller; healthy controllers still complete their frame and continue. Reset the count after a successful update. A top-level `try`/`catch`/`finally` logs fatal scheduler faults, exposes a visible execution fault/state transition rather than leaving execution marked open, completes waiters, and releases timer resources.
 
@@ -240,11 +243,6 @@ Define the equivalent of the following internal contracts; names may vary only w
         void Wake();
     }
 
-    internal interface IControllerFrameConsumer
-    {
-        Task<ControllerUpdateResult> UpdateAsync(long frameId, CancellationToken cancellationToken);
-    }
-
     internal interface IPreviewFramePublisher
     {
         void Publish(PreviewFrameSnapshot snapshot);
@@ -269,8 +267,12 @@ On the existing public `Vixen.Sys.Output.IOutputDevice`, retain but obsolete:
     [Obsolete("Per-device update signaling is no longer supported. The execution scheduler controls frame dispatch.")]
     IOutputDeviceUpdateSignaler UpdateSignaler { get; }
 
-No implementation in this plan may use either member to decide whether or when to render/send a frame. Preserve `Update()` and `UpdateAsync()` during this release for module compatibility; `ExecutionScheduler` routes present synchronous controller output through its internal legacy adapter.
+No implementation in this plan may use either member to decide whether or when to render/send a frame. `IOutputDevice.UpdateAsync()` is removed because it was an unused POC-only API; synchronous controller output is dispatched concurrently by the execution loop.
 
 Plan change note (2026-08-25): Initial ExecPlan created from the VIX-3750 timing review and requester decisions. It records the explicit deprecation, retry, export-restoration, and MMCSS-scope choices so implementation does not infer them later.
 
 Plan change note (2026-08-25): Marked Milestone 1 complete after adding the scheduler/timer/metrics foundation and deterministic tests. Documented the necessary `Vixen.Sys.Engine` namespace choice after the existing `Vixen.Sys.Execution` type prevented the originally suggested namespace.
+
+Plan change note (2026-08-25): Marked Milestone 2 complete after integrating leased active snapshots, transactional lifecycle publication, scheduler wake notifications, concurrent controller dispatch, the per-frame barrier, and bounded consecutive-failure handling. The Rider-visible console-window test was removed before validation because it exercised native timer construction; Windows integration coverage remains deferred to the later performance milestone.
+
+Plan change note (2026-08-25): Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations after the requester confirmed there are no external consumers. Simplified controller dispatch to direct scheduler-owned tasks while retaining the common barrier and per-controller failure isolation.

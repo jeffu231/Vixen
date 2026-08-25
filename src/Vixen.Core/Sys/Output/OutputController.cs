@@ -128,11 +128,6 @@ namespace Vixen.Sys.Output
 			}
 		}
 
-		public async Task UpdateAsync()
-		{
-			await Task.Run(Update);
-		}
-
 		public void Update()
 		{
 			Update(throwOnFailure: false);

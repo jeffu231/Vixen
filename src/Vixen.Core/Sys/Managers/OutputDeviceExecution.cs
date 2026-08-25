@@ -75,6 +75,7 @@ namespace Vixen.Sys.Managers
 					_outputDevices[outputDevice.Id] = outputDevice;
 					PublishActiveDevices();
 				}
+				Execution.NotifyActiveConsumerStateChanged();
 			}
 			catch (Exception exception)
 			{
@@ -120,6 +121,7 @@ namespace Vixen.Sys.Managers
 				{
 					if (outputDevice.IsRunning && !outputDevice.IsPaused) PublishActiveDevices();
 				}
+				Execution.NotifyActiveConsumerStateChanged();
 			}
 			catch (Exception exception)
 			{
@@ -148,6 +150,12 @@ namespace Vixen.Sys.Managers
 			lock (_syncRoot)
 			{
 				_activeDevices = _activeDevices.Where(device => device.Id != outputDevice.Id).ToArray();
+			}
+
+			Execution.NotifyActiveConsumerStateChanged();
+
+			lock (_syncRoot)
+			{
 				while (_inFlightFrameCounts.GetValueOrDefault(outputDevice.Id) > 0) Monitor.Wait(_syncRoot);
 				if (removeDevice) _outputDevices.Remove(outputDevice.Id);
 			}

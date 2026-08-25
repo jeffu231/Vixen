@@ -15,7 +15,6 @@ internal sealed class TestOutputDevice : IOutputDevice
 
 	public bool Setup() => true;
 	public void Update() { }
-	public Task UpdateAsync() => Task.CompletedTask;
 	public void UpdateCommands() { }
 	public void Start() => IsRunning = true;
 	public void Stop()
