@@ -51,6 +51,8 @@ namespace Vixen.Sys.Engine
 
 		public long Frequency => Stopwatch.Frequency;
 
+		internal bool UsesTimerResolutionFallback => _usesTimePeriodFallback;
+
 		public ExecutionTimerWaitResult WaitUntil(long deadlineTimestamp, CancellationToken cancellationToken)
 		{
 			if (cancellationToken.IsCancellationRequested)

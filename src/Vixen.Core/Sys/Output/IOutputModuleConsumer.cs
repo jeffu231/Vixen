@@ -5,7 +5,9 @@ namespace Vixen.Sys.Output
 	internal interface IOutputModuleConsumer<out T> : IModuleConsumer<T>, IHardware, IHasSetup
 		where T : class, IOutputModule
 	{
+		[Obsolete("Per-device scheduling is no longer supported. The execution scheduler uses VixenSystem.DefaultUpdateInterval.")]
 		int UpdateInterval { get; }
+		[Obsolete("Per-device update signaling is no longer supported. The execution scheduler controls frame dispatch.")]
 		IOutputDeviceUpdateSignaler UpdateSignaler { get; }
 
 		/// <summary>

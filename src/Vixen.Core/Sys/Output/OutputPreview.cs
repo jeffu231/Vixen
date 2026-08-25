@@ -70,12 +70,16 @@ namespace Vixen.Sys.Output
 			get { return _outputModuleConsumer.ModuleInstanceId; }
 		}
 
+		/// <inheritdoc />
+		[Obsolete("Per-device scheduling is no longer supported. The execution scheduler uses VixenSystem.DefaultUpdateInterval.")]
 		public int UpdateInterval
 		{
 			get { return (_updateInterval.HasValue) ? _updateInterval.Value : _outputModuleConsumer.UpdateInterval; }
 			set { _updateInterval = value; }
 		}
 
+		/// <inheritdoc />
+		[Obsolete("Per-device update signaling is no longer supported. The execution scheduler controls frame dispatch.")]
 		public IOutputDeviceUpdateSignaler UpdateSignaler
 		{
 			get { return _outputModuleConsumer.UpdateSignaler; }
@@ -132,6 +136,10 @@ namespace Vixen.Sys.Output
 		{
 			get { return _outputModuleConsumer.Module; }
 		}
+
+		internal long CoalescedFrameCount => _frameMailbox?.CoalescedFrameCount ?? 0;
+
+		internal long LastFrameAgeTicks => _frameMailbox?.LastFrameAgeTicks ?? 0;
 
 		private Vixen.Sys.Engine.PreviewFrameMailbox FrameMailbox => _frameMailbox ??= CreateFrameMailbox();
 

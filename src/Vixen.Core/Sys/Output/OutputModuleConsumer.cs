@@ -21,6 +21,7 @@ namespace Vixen.Sys.Output
 			}
 		}
 
+		#pragma warning disable CS0618 // Retains the obsolete module compatibility surface.
 		public int UpdateInterval
 		{
 			get
@@ -85,6 +86,7 @@ namespace Vixen.Sys.Output
 				return null;
 			}
 		}
+		#pragma warning restore CS0618
 
 		/// <inheritdoc />
 		public bool SupportsNamedOutputs => _outputModule?.SupportsNamedOutputs ?? false;

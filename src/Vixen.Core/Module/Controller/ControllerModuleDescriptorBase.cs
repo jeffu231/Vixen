@@ -20,6 +20,8 @@ namespace Vixen.Module.Controller
 
 		public abstract override string Version { get; }
 
+		/// <inheritdoc />
+		[Obsolete("Per-device scheduling is no longer supported. The execution scheduler uses VixenSystem.DefaultUpdateInterval.")]
 		public virtual int UpdateInterval
 		{
 			get { return VixenSystem.DefaultUpdateInterval; }

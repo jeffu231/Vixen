@@ -86,6 +86,8 @@ namespace Vixen.Sys.Output
 			get { return _outputModuleConsumer.ModuleInstanceId; }
 		}
 
+		/// <inheritdoc />
+		[Obsolete("Per-device scheduling is no longer supported. The execution scheduler uses VixenSystem.DefaultUpdateInterval.")]
 		public int UpdateInterval
 		{
 			get { return (_updateInterval.HasValue) ? _updateInterval.Value : _outputModuleConsumer.UpdateInterval; }
@@ -190,6 +192,8 @@ namespace Vixen.Sys.Output
 
 		}
 
+		/// <inheritdoc />
+		[Obsolete("Per-device update signaling is no longer supported. The execution scheduler controls frame dispatch.")]
 		public IOutputDeviceUpdateSignaler UpdateSignaler
 		{
 			get { return _outputModuleConsumer.UpdateSignaler; }

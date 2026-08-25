@@ -56,11 +56,15 @@ namespace Vixen.Sys.Output
 			IsPaused = false;
 		}
 
+		/// <inheritdoc />
+		[Obsolete("Per-device scheduling is no longer supported. The execution scheduler uses VixenSystem.DefaultUpdateInterval.")]
 		public virtual int UpdateInterval
 		{
 			get { return ((IOutputModuleDescriptor) Descriptor).UpdateInterval; }
 		}
 
+		/// <inheritdoc />
+		[Obsolete("Per-device update signaling is no longer supported. The execution scheduler controls frame dispatch.")]
 		public virtual IOutputDeviceUpdateSignaler UpdateSignaler
 		{
 			get { return null; }

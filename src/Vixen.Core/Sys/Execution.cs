@@ -24,6 +24,7 @@ namespace Vixen.Sys
 		private static bool _lastUpdateClearedStates;
 		private static Thread _executionThread;
 		private static ExecutionScheduler _executionScheduler;
+		private static ExecutionFrameMetrics _executionFrameMetrics;
 		private static readonly Lock ExecutionSchedulerSyncRoot = new();
 		private static readonly ReaderWriterLockSlim OutputDeviceLifecycleLock = new(LockRecursionPolicy.SupportsRecursion);
 		private static readonly Dictionary<Guid, int> ControllerFailureCounts = new();
@@ -31,6 +32,11 @@ namespace Vixen.Sys
 
 		public static void InitInstrumentation()
 		{
+			_executionFrameMetrics ??= new ExecutionFrameMetrics();
+			foreach (var value in _executionFrameMetrics.InstrumentationValues)
+			{
+				VixenSystem.Instrumentation.AddValue(value);
+			}
 			_executionUpdateTime = new MillisecondsValue("Execution update time");
 			VixenSystem.Instrumentation.AddValue(_executionUpdateTime);
 			_executionSleepTime = new MillisecondsValue("Execution sleep time");
@@ -88,11 +94,14 @@ namespace Vixen.Sys
 				}
 
 				_executionScheduler?.Dispose();
-				_executionScheduler = new ExecutionScheduler(new WindowsHighResolutionExecutionTimer(),
+				var timer = new WindowsHighResolutionExecutionTimer();
+				_executionFrameMetrics ??= new ExecutionFrameMetrics();
+				_executionFrameMetrics.RecordTimerFallback(timer.UsesTimerResolutionFallback);
+				_executionScheduler = new ExecutionScheduler(timer,
 					() => VixenSystem.DefaultUpdateTimeSpan,
 					HasActiveConsumers,
 					ExecuteFrame,
-					new ExecutionFrameMetrics());
+					_executionFrameMetrics);
 				_executionScheduler.NotifyActiveConsumerStateChanged();
 				_executionThread = new Thread(UpdateState) { Name = "Execution State Update", IsBackground = true, Priority = ThreadPriority.Normal };
 				_executionThread.Start();
@@ -239,6 +248,7 @@ namespace Vixen.Sys
 			_stopwatch!.Restart();
 			using var controllers = VixenSystem.OutputControllers.AcquireActiveSnapshot();
 			using var previews = VixenSystem.Previews.AcquireActiveSnapshot();
+			_executionFrameMetrics?.RecordActiveConsumerCounts(controllers.Devices.Length, previews.Devices.Length);
 
 				bool elementsAffected = VixenSystem.Contexts.Update();
 				if (elementsAffected)
@@ -275,7 +285,9 @@ namespace Vixen.Sys
 			var start = _stopwatch.ElapsedMilliseconds;
 			var updateTasks = outputControllers.Select(outputController => Task.Run(() => UpdateController(outputController, frameId))).ToArray();
 			UpdatePreviews(frameId, previews);
+			var barrierStartTimestamp = Stopwatch.GetTimestamp();
 			var failedControllers = Task.WhenAll(updateTasks).GetAwaiter().GetResult().Where(controller => controller != null).ToArray();
+			_executionFrameMetrics?.RecordOutputBarrierDuration(Stopwatch.GetTimestamp() - barrierStartTimestamp);
 			foreach (var controller in outputControllers.Except(failedControllers))
 			{
 				ControllerFailureCounts.Remove(controller.Id);
@@ -291,6 +303,7 @@ namespace Vixen.Sys
 					ControllersToStop.Enqueue(controller);
 				}
 			}
+			_executionFrameMetrics?.RecordControllerFailureCount(ControllerFailureCounts.Values.Sum());
 			_executionUpdateOutputDevicesTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}
 
@@ -323,6 +336,8 @@ namespace Vixen.Sys
 					Logging.Error(exception, "Preview {0} failed to accept frame {1}.", preview.Name, frameId);
 				}
 			}
+			_executionFrameMetrics?.RecordPreviewMetrics(previews.Sum(preview => preview.CoalescedFrameCount),
+				previews.Select(preview => preview.LastFrameAgeTicks).DefaultIfEmpty().Max());
 
 			_executionUpdatePreviewsTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}

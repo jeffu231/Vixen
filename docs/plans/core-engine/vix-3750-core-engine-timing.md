@@ -20,7 +20,7 @@ An operator can verify the result by playing a sequence with controllers and pre
 - [x] (2026-08-25) Milestone 2: Routed controller and preview lifecycle through immutable leased active snapshots. Device start/resume publishes only after its module operation succeeds; pause/stop unpublishes and waits for current frame leases before invoking the module. The execution loop now starts all active controller sends concurrently, waits at one barrier, isolates failures, and removes a controller after five consecutive failed frames. Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations. User confirmed the full tests pass without a Rider console window; `dotnet build src/Vixen.Core/Vixen.Core.csproj --no-restore` also passed with three existing unrelated warnings.
 - [x] (2026-08-25) Milestone 3: Implemented coalesced live-state preview publication with per-preview mailboxes, invalidation, and deterministic mailbox tests. The requester confirmed all tests pass.
 - [x] (2026-08-25) Milestone 4: Replaced export's close/reopen path with a scheduler quiesce lease, captured and restored device/context running-paused behavior, and serialized output lifecycle operations behind the lease. Opening no longer changes multimedia resolution and closing already joins the scheduler before it releases contexts or devices. MSBuild built `Vixen.Tests`; focused scheduler tests passed 6/6 and `git diff --check` passed. A full CLI test invocation was stopped after its existing test host stalled without reporting failures.
-- [ ] Milestone 5: Deprecate obsolete per-device cadence APIs; add fault handling, instrumentation UI integration, and performance evidence.
+- [ ] Milestone 5: Deprecated the per-device cadence and signaler compatibility APIs, removed unused legacy device-timing instrumentation, and registered scheduler timing, consumer, failure, preview-coalescing, and timer-fallback values with the instrumentation screen. Focused engine tests passed 19/19. The requester reported a 50 ms preview-only baseline using the high-resolution timer: frame lateness from near zero to 15 ms (30% of the cadence); interval error from -5 ms to +15 ms; frame-update duration 10–20 ms, mostly context update at about 14 ms; preview frame age under 1 ms; output barrier 0.001 ms; and sleep duration 15–30 ms. Remaining: run/record 25 ms and 50 ms controller and slow-controller scenarios.
 - [ ] Milestone 6: Apply required project skills, run full validation, manually verify, and update this plan's outcome sections.
 
 ## Surprises & Discoveries
@@ -48,6 +48,12 @@ An operator can verify the result by playing a sequence with controllers and pre
 
 - Observation: the in-flight-frame quiesce test needs to wait until the scheduler has recorded the quiesce request before it releases the frame.
   Evidence: the former `Task.Yield()` only yielded test scheduling and did not prove `ExecutionScheduler.Quiesce()` had incremented its request count. The test now waits for the internal `IsQuiesced` state and passed individually in 35 ms and as part of the focused suite (6/6).
+
+- Observation: legacy output-device timing instrumentation classes had no references outside their own declarations.
+  Evidence: repository search found no consumers of `OutputDeviceRefreshRateValue`, `OutputDeviceSleepTimeActualValue`, `OutputDeviceSleepTimeRequestedValue`, or `OutputDeviceUpdateTimeValue`; controller work-duration instrumentation remains in use and is not cadence control.
+
+- Observation: with no controllers and one preview at 50 ms, preview dispatch stays current while normal engine work consumes a material portion of the frame budget even with the high-resolution timer.
+  Evidence: requester-reported instrumentation shows `Execution timer fallback active = 0`, frame-update duration of 10–20 ms with context update contributing about 14 ms, preview frame age below 1 ms, and output barrier duration of 0.001 ms, alongside frame lateness up to 15 ms (30% of the cadence), interval error from -5 ms to +15 ms, and scheduler sleep from 15 ms to 30 ms. Frame work plus sleep therefore spans 25–50 ms before wake lateness.
 
 ## Decision Log
 
@@ -81,6 +87,10 @@ An operator can verify the result by playing a sequence with controllers and pre
 
 - Decision: Export holds a writer lease on a process-wide output lifecycle gate. Each normal output-device lifecycle operation takes a reader scope, so it blocks while export is quiesced; operations initiated by the export thread are allowed through the reentrant reader scope.
   Rationale: This uses the existing `OutputDeviceExecution<T>` lifecycle funnel rather than adding competing state flags to every manager. It makes export the only output state mutator while it owns the scheduler quiesce lease.
+  Date/Author: 2026-08-25 / implementation session.
+
+- Decision: Retain the obsolete interval and signaler members for one compatibility release, but expose scheduler measurements as milliseconds and count values in the existing instrumentation screen.
+  Rationale: Existing modules and serialized configuration retain binary/source compatibility while new callers are directed to the single global scheduler. Converting stopwatch ticks at the instrumentation boundary makes timing data directly interpretable by operators.
   Date/Author: 2026-08-25 / implementation session.
 
 ## Outcomes & Retrospective
@@ -299,3 +309,15 @@ Plan change note (2026-08-25): Marked Milestone 3 complete after the requester c
 Plan change note (2026-08-25): Corrected the Milestone 4 lifecycle-gate test so it releases the quiesce lease before awaiting the intentionally blocked lifecycle operation. This preserves the intended assertion and prevents the full test suite from deadlocking.
 
 Plan change note (2026-08-25): Made the Milestone 4 in-flight-frame quiesce test deterministic by exposing internal scheduler quiescence state for test synchronization, replacing a scheduling-dependent yield, and always releasing the blocked frame during cleanup.
+
+Plan change note (2026-08-25): Implemented the code portion of Milestone 5: obsolete compatibility annotations and migration XML documentation, scheduler instrumentation registration and units, active/failure/preview/fallback metrics, and removal of unused legacy device-timing values. Real Windows performance measurements remain pending because the required controlled output scenarios are not available in this workspace.
+
+Plan change note (2026-08-25): Recorded the requester's preview-only timing baseline. It confirms preview coalescing is not the source of the observed timing variation, but does not yet identify the scheduler interval or high-resolution/fallback timer mode required to interpret the wake lateness.
+
+Plan change note (2026-08-25): Updated the preview-only baseline with its 50 ms global interval. The observed maximum lateness consumes 30% of that frame budget; timer mode remains needed before changing scheduler behavior.
+
+Plan change note (2026-08-25): Recorded that the high-resolution timer was active for the preview-only baseline. This rules out the fallback path; frame-update duration is the next required measurement before attributing the lateness to timer wake behavior.
+
+Plan change note (2026-08-25): Recorded a 10–20 ms frame-update duration for the high-resolution, preview-only baseline. Together with the 15–30 ms sleep range, normal work and waiting consume up to the entire 50 ms cadence; do not add MMCSS or priority changes without the remaining scenario evidence.
+
+Plan change note (2026-08-25): Attributed approximately 14 ms of the preview-only frame-update duration to `ContextManager.Update()`. This narrows future optimization investigation to context execution rather than preview dispatch, controller output, or scheduler priority.

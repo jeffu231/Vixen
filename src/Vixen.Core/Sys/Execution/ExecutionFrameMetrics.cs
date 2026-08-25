@@ -11,15 +11,20 @@ namespace Vixen.Sys.Engine
 		{
 			_instrumentationValues =
 			[
-				new ExecutionMetricValue("Execution scheduled deadline", () => ScheduledDeadlineTimestamp),
-				new ExecutionMetricValue("Execution frame lateness", () => FrameStartLatenessTicks),
-				new ExecutionMetricValue("Execution frame update duration", () => FrameUpdateDurationTicks),
-				new ExecutionMetricValue("Execution output barrier duration", () => OutputBarrierDurationTicks),
-				new ExecutionMetricValue("Execution sleep duration", () => SleepDurationTicks),
-				new ExecutionMetricValue("Execution final spin duration", () => FinalSpinDurationTicks),
-				new ExecutionMetricValue("Execution interval error", () => IntervalErrorTicks),
-				new ExecutionMetricValue("Execution missed deadlines", () => MissedDeadlineCount),
-				new ExecutionMetricValue("Execution refresh count", () => RefreshCount)
+				new ExecutionMillisecondsValue("Execution frame lateness", () => FrameStartLatenessTicks),
+				new ExecutionMillisecondsValue("Execution frame update duration", () => FrameUpdateDurationTicks),
+				new ExecutionMillisecondsValue("Execution output barrier duration", () => OutputBarrierDurationTicks),
+				new ExecutionMillisecondsValue("Execution sleep duration", () => SleepDurationTicks),
+				new ExecutionMillisecondsValue("Execution final spin duration", () => FinalSpinDurationTicks),
+				new ExecutionMillisecondsValue("Execution interval error", () => IntervalErrorTicks),
+				new ExecutionMillisecondsValue("Execution preview frame age", () => PreviewFrameAgeTicks),
+				new ExecutionCountValue("Execution missed deadlines", () => MissedDeadlineCount),
+				new ExecutionCountValue("Execution refresh count", () => RefreshCount),
+				new ExecutionCountValue("Execution active controllers", () => ActiveControllerCount),
+				new ExecutionCountValue("Execution active previews", () => ActivePreviewCount),
+				new ExecutionCountValue("Execution controller failures", () => ControllerFailureCount),
+				new ExecutionCountValue("Execution preview coalesced frames", () => PreviewCoalescedFrameCount),
+				new ExecutionCountValue("Execution timer fallback active", () => UsesTimerFallback ? 1 : 0)
 			];
 		}
 
@@ -34,6 +39,12 @@ namespace Vixen.Sys.Engine
 		public long IntervalErrorTicks { get; private set; }
 		public long MissedDeadlineCount { get; private set; }
 		public long RefreshCount { get; private set; }
+		public long ActiveControllerCount { get; private set; }
+		public long ActivePreviewCount { get; private set; }
+		public long ControllerFailureCount { get; private set; }
+		public long PreviewCoalescedFrameCount { get; private set; }
+		public long PreviewFrameAgeTicks { get; private set; }
+		public bool UsesTimerFallback { get; private set; }
 
 		public void RecordFrameStart(long scheduledDeadlineTimestamp, long actualStartTimestamp)
 		{
@@ -70,6 +81,28 @@ namespace Vixen.Sys.Engine
 		public void RecordMissedDeadlines(long missedDeadlineCount)
 		{
 			MissedDeadlineCount += Math.Max(0, missedDeadlineCount);
+		}
+
+		public void RecordActiveConsumerCounts(int controllerCount, int previewCount)
+		{
+			ActiveControllerCount = Math.Max(0, controllerCount);
+			ActivePreviewCount = Math.Max(0, previewCount);
+		}
+
+		public void RecordControllerFailureCount(long controllerFailureCount)
+		{
+			ControllerFailureCount = Math.Max(0, controllerFailureCount);
+		}
+
+		public void RecordPreviewMetrics(long coalescedFrameCount, long frameAgeTicks)
+		{
+			PreviewCoalescedFrameCount = Math.Max(0, coalescedFrameCount);
+			PreviewFrameAgeTicks = Math.Max(0, frameAgeTicks);
+		}
+
+		public void RecordTimerFallback(bool usesTimerFallback)
+		{
+			UsesTimerFallback = usesTimerFallback;
 		}
 	}
 }
