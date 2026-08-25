@@ -1,4 +1,5 @@
 using Vixen.Sys.Engine;
+using ExecutionFacade = Vixen.Sys.Execution;
 using Xunit;
 
 namespace Vixen.Tests.Sys.Engine;
@@ -108,5 +109,59 @@ public class ExecutionSchedulerTests
 		Assert.Equal(2, metrics.RefreshCount);
 		Assert.Equal(0, metrics.MissedDeadlineCount);
 		Assert.Equal(49_500, timer.LastWaitDeadlineTimestamp);
+	}
+
+	[Fact]
+	public async Task Quiesce_FrameInProgress_WaitsForCompletionAndPreventsAnotherFrame()
+	{
+		// Arrange
+		var timer = new FakeExecutionTimer();
+		var metrics = new ExecutionFrameMetrics();
+		using var frameStarted = new ManualResetEventSlim();
+		using var releaseFrame = new ManualResetEventSlim();
+		using var scheduler = new ExecutionScheduler(timer, TimeSpan.FromMilliseconds(25), () => true, _ =>
+		{
+			frameStarted.Set();
+			releaseFrame.Wait(TestContext.Current.CancellationToken);
+		}, metrics);
+		var runTask = Task.Run(scheduler.Run, TestContext.Current.CancellationToken);
+		frameStarted.Wait(TestContext.Current.CancellationToken);
+		Assert.True(frameStarted.IsSet);
+
+		// Act
+		var quiesceTask = Task.Run(scheduler.Quiesce, TestContext.Current.CancellationToken);
+		await Task.Yield();
+
+		// Assert
+		Assert.False(quiesceTask.IsCompleted);
+		releaseFrame.Set();
+		using var lease = await quiesceTask;
+		Assert.Equal(1, metrics.RefreshCount);
+
+		// Cleanup
+		scheduler.Stop();
+		await runTask;
+	}
+
+	[Fact]
+	public async Task Quiesce_OutputDeviceLifecycle_WaitsUntilTheLeaseIsReleased()
+	{
+		// Arrange
+		using var lifecycleAttempted = new ManualResetEventSlim();
+		using var lifecycleEntered = new ManualResetEventSlim();
+		using var lease = ExecutionFacade.Quiesce();
+		var lifecycleTask = Task.Run(() =>
+		{
+			lifecycleAttempted.Set();
+			using var lifecycle = ExecutionFacade.EnterOutputDeviceLifecycle();
+			lifecycleEntered.Set();
+		}, TestContext.Current.CancellationToken);
+		lifecycleAttempted.Wait(TestContext.Current.CancellationToken);
+		Assert.True(lifecycleAttempted.IsSet);
+
+		// Assert
+		Assert.False(lifecycleEntered.Wait(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken));
+		await lifecycleTask;
+		Assert.True(lifecycleEntered.IsSet);
 	}
 }

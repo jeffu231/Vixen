@@ -13,6 +13,10 @@ namespace Vixen.Sys.Engine
 		private readonly ExecutionDeadlineCalculator _deadlineCalculator = new();
 		private readonly CancellationTokenSource _cancellationTokenSource = new();
 		private readonly ManualResetEventSlim _activeConsumerEvent = new(false);
+		private readonly ManualResetEventSlim _quiescenceReleasedEvent = new(true);
+		private readonly ManualResetEventSlim _frameCompletedEvent = new(true);
+		private readonly Lock _quiescenceSyncRoot = new();
+		private int _quiescenceCount;
 		private bool _isDisposed;
 
 		public ExecutionScheduler(IExecutionTimer timer, TimeSpan interval, Func<bool> hasActiveConsumers, Action<long> executeFrame,
@@ -53,6 +57,23 @@ namespace Vixen.Sys.Engine
 			_timer.Wake();
 		}
 
+		/// <summary>
+		/// Prevents ordinary frames from starting until the returned lease is disposed.
+		/// </summary>
+		/// <returns>A lease that releases one quiescence request.</returns>
+		public ExecutionQuiesceLease Quiesce()
+		{
+			lock (_quiescenceSyncRoot)
+			{
+				_quiescenceCount++;
+				_quiescenceReleasedEvent.Reset();
+			}
+
+			_timer.Wake();
+			_frameCompletedEvent.Wait(_cancellationTokenSource.Token);
+			return new ExecutionQuiesceLease(ReleaseQuiescence);
+		}
+
 		public void Run()
 		{
 			var cancellationToken = _cancellationTokenSource.Token;
@@ -63,6 +84,13 @@ namespace Vixen.Sys.Engine
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
+				if (IsQuiesced())
+				{
+					wasIdle = true;
+					WaitForQuiescenceRelease(cancellationToken);
+					continue;
+				}
+
 				if (!_hasActiveConsumers())
 				{
 					wasIdle = true;
@@ -85,9 +113,22 @@ namespace Vixen.Sys.Engine
 				}
 				previousFrameStartTimestamp = frameStartTimestamp;
 
-				var updateStartTimestamp = _timer.Timestamp;
-				_executeFrame(++frameId);
-				Metrics.RecordFrameUpdateDuration(_timer.Timestamp - updateStartTimestamp);
+				if (!TryBeginFrame())
+				{
+					wasIdle = true;
+					continue;
+				}
+
+				try
+				{
+					var updateStartTimestamp = _timer.Timestamp;
+					_executeFrame(++frameId);
+					Metrics.RecordFrameUpdateDuration(_timer.Timestamp - updateStartTimestamp);
+				}
+				finally
+				{
+					EndFrame();
+				}
 
 				var deadlineResult = _deadlineCalculator.CompleteFrame(_timer.Timestamp);
 				Metrics.RecordMissedDeadlines(deadlineResult.MissedDeadlineCount);
@@ -106,6 +147,8 @@ namespace Vixen.Sys.Engine
 		{
 			_cancellationTokenSource.Cancel();
 			_activeConsumerEvent.Set();
+			_quiescenceReleasedEvent.Set();
+			_frameCompletedEvent.Set();
 			_timer.Wake();
 		}
 
@@ -118,6 +161,8 @@ namespace Vixen.Sys.Engine
 
 			Stop();
 			_activeConsumerEvent.Dispose();
+			_quiescenceReleasedEvent.Dispose();
+			_frameCompletedEvent.Dispose();
 			_cancellationTokenSource.Dispose();
 			_timer.Dispose();
 			_isDisposed = true;
@@ -128,6 +173,51 @@ namespace Vixen.Sys.Engine
 			try
 			{
 				_activeConsumerEvent.Wait(cancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+		}
+
+		private bool IsQuiesced()
+		{
+			lock (_quiescenceSyncRoot) return _quiescenceCount > 0;
+		}
+
+		private bool TryBeginFrame()
+		{
+			lock (_quiescenceSyncRoot)
+			{
+				if (_quiescenceCount > 0) return false;
+				_frameCompletedEvent.Reset();
+				return true;
+			}
+		}
+
+		private void EndFrame()
+		{
+			lock (_quiescenceSyncRoot)
+			{
+				_frameCompletedEvent.Set();
+			}
+		}
+
+		private void ReleaseQuiescence()
+		{
+			lock (_quiescenceSyncRoot)
+			{
+				if (_quiescenceCount == 0) return;
+				if (--_quiescenceCount != 0) return;
+				_quiescenceReleasedEvent.Set();
+			}
+			_timer.Wake();
+		}
+
+		private void WaitForQuiescenceRelease(CancellationToken cancellationToken)
+		{
+			try
+			{
+				_quiescenceReleasedEvent.Wait(cancellationToken);
 			}
 			catch (OperationCanceledException)
 			{

@@ -2,14 +2,19 @@
 using Vixen.Execution.Context;
 using Vixen.Sys;
 using Vixen.Sys.Output;
+using Vixen.Sys.Engine;
 
 namespace Vixen.Cache.Sequence
 {
 	public class SequenceIntervalGenerator
 	{
+		private static readonly NLog.Logger Logging = NLog.LogManager.GetCurrentClassLogger();
 		private bool _statesClear;
 		private PreCachingSequenceContext _context;
-		private IEnumerable<IContext> _runningContexts = Enumerable.Empty<IContext>();
+		private IReadOnlyList<ContextExecutionState> _contextStates = [];
+		private IReadOnlyList<OutputDeviceExecutionState> _outputDeviceStates = [];
+		private ExecutionQuiesceLease _quiesceLease;
+		private bool _generationStarted;
 		private int _outputCount;
 		
 		#region Contructors
@@ -105,47 +110,160 @@ namespace Vixen.Cache.Sequence
 		}
 
 		/// <summary>
-		/// Initializes the generator processes to begin the data extraction
+		/// Acquires exclusive execution state and initializes data extraction.
+		/// </summary>
+		/// <exception cref="InvalidOperationException">Generation is already active for this instance.</exception>
 		/// </summary>
 		public void BeginGeneration()
 		{
-			//Stop the output devices from driving the execution engine.
-			VixenSystem.OutputDeviceManagement.PauseAll();
-			Sys.Execution.CloseExecution();
-			_runningContexts = VixenSystem.Contexts.Where(x => x.IsRunning);
-			foreach (var runningContext in _runningContexts)
+			if (_generationStarted) throw new InvalidOperationException("Generation has already started.");
+
+			_quiesceLease = Sys.Execution.Quiesce();
+			try
 			{
-				runningContext.Pause();
+				_contextStates = VixenSystem.Contexts
+					.Select(context => new ContextExecutionState(context, context.IsRunning, context.IsPaused))
+					.ToArray();
+				_outputDeviceStates = VixenSystem.OutputDeviceManagement.Devices
+					.Select(device => new OutputDeviceExecutionState(device, device.IsRunning, device.IsPaused))
+					.ToArray();
+
+				PauseRunningOutputDevices();
+				PauseRunningContexts();
+				_outputCount = VixenSystem.OutputControllers.GetAll().Sum(x => x.OutputCount);
+				VixenSystem.Elements.ClearStates();
+				_context = VixenSystem.Contexts.GetCacheCompileContext();
+				_context.Sequence = Sequence;
+				_context.Start();
+				TimingSource.Start();
+				_generationStarted = true;
+				UpdateState();
 			}
-			_outputCount = VixenSystem.OutputControllers.GetAll().Sum(x => x.OutputCount);
-			VixenSystem.Elements.ClearStates();
-			//Special context to pre cache commands. We don't need all the other fancy executor or timing as we will advance it ourselves
-			_context = VixenSystem.Contexts.GetCacheCompileContext();
-			_context.Sequence = Sequence;
-			_context.Start();
-			TimingSource.Start();
-			UpdateState();
+			catch
+			{
+				EndGeneration();
+				throw;
+			}
 		}
 
 		/// <summary>
-		/// Completes the generation process and restarts all the contexts that were running when the BeginGeneration method was called.
+		/// Completes generation and restores the output devices and contexts captured by <see cref="BeginGeneration" />.
+		/// </summary>
 		/// </summary>
 		public void EndGeneration()
 		{
-			TimingSource.Stop();
-			VixenSystem.Elements.ClearStates();
-			VixenSystem.Filters.Update();
-			if (_context != null)
+			try
+			{
+				TimingSource.Stop();
+				VixenSystem.Elements.ClearStates();
+				VixenSystem.Filters.Update();
+			}
+			finally
+			{
+				ReleaseCompilerContext();
+				RestoreContextStates();
+				RestoreOutputDeviceStates();
+				_generationStarted = false;
+				_contextStates = [];
+				_outputDeviceStates = [];
+				_quiesceLease?.Dispose();
+				_quiesceLease = null;
+			}
+		}
+
+		private void ReleaseCompilerContext()
+		{
+			if (_context == null) return;
+			try
 			{
 				VixenSystem.Contexts.ReleaseContext(_context);
 			}
-			foreach (var runningContext in _runningContexts)
+			catch (Exception exception)
 			{
-				runningContext.Resume();
+				Logging.Error(exception, "Failed to release the compiler context after export.");
 			}
-			//restart the devices
-			VixenSystem.OutputDeviceManagement.ResumeAll();
-			Sys.Execution.OpenExecution();
+			finally
+			{
+				_context = null;
+			}
+		}
+
+		private void PauseRunningOutputDevices()
+		{
+			foreach (var state in _outputDeviceStates.Where(state => state.IsRunning && !state.IsPaused))
+			{
+				PauseOutputDevice(state.Device);
+			}
+		}
+
+		private void PauseRunningContexts()
+		{
+			foreach (var state in _contextStates.Where(state => state.IsRunning && !state.IsPaused))
+			{
+				state.Context.Pause();
+			}
+		}
+
+		private void RestoreContextStates()
+		{
+			foreach (var state in _contextStates)
+			{
+				try
+				{
+					if (state.IsRunning && !state.IsPaused && state.Context.IsRunning && state.Context.IsPaused)
+					{
+						state.Context.Resume();
+					}
+				}
+				catch (Exception exception)
+				{
+					Logging.Error(exception, "Failed to restore context {0} after export.", state.Context.Name);
+				}
+			}
+		}
+
+		private void RestoreOutputDeviceStates()
+		{
+			foreach (var state in _outputDeviceStates)
+			{
+				try
+				{
+					if (state.IsRunning && !state.IsPaused && state.Device.IsRunning && state.Device.IsPaused)
+					{
+						ResumeOutputDevice(state.Device);
+					}
+				}
+				catch (Exception exception)
+				{
+					Logging.Error(exception, "Failed to restore output device {0} after export.", state.Device.Name);
+				}
+			}
+		}
+
+		private static void PauseOutputDevice(IOutputDevice outputDevice)
+		{
+			switch (outputDevice)
+			{
+				case OutputController controller:
+					VixenSystem.OutputControllers.Pause(controller);
+					break;
+				case OutputPreview preview:
+					VixenSystem.Previews.Pause(preview);
+					break;
+			}
+		}
+
+		private static void ResumeOutputDevice(IOutputDevice outputDevice)
+		{
+			switch (outputDevice)
+			{
+				case OutputController controller:
+					VixenSystem.OutputControllers.Resume(controller);
+					break;
+				case OutputPreview preview:
+					VixenSystem.Previews.Resume(preview);
+					break;
+			}
 		}
 
 

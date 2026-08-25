@@ -13,17 +13,18 @@ namespace Vixen.Sys.Managers
 
 		public ExecutionState ExecutionState { get; private set; } = ExecutionState.Stopped;
 
-		public void Start(T outputDevice) => StartDevice(outputDevice);
-		public void Stop(T outputDevice) => StopDevice(outputDevice);
-		public void Pause(T outputDevice) => PauseDevice(outputDevice);
-		public void Resume(T outputDevice) => ResumeDevice(outputDevice);
-		public void StartAll() => StartAll(GetStartedDevices());
-		public void StopAll() => StopAll(GetStartedDevices());
-		public void PauseAll() => PauseAll(GetStartedDevices());
-		public void ResumeAll() => ResumeAll(GetStartedDevices());
+		public void Start(T outputDevice) { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); StartDevice(outputDevice); }
+		public void Stop(T outputDevice) { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); StopDevice(outputDevice); }
+		public void Pause(T outputDevice) { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); PauseDevice(outputDevice); }
+		public void Resume(T outputDevice) { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); ResumeDevice(outputDevice); }
+		public void StartAll() { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); StartAll(GetStartedDevices()); }
+		public void StopAll() { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); StopAll(GetStartedDevices()); }
+		public void PauseAll() { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); PauseAll(GetStartedDevices()); }
+		public void ResumeAll() { using var lifecycle = Execution.EnterOutputDeviceLifecycle(); ResumeAll(GetStartedDevices()); }
 
 		public void StartAll(IEnumerable<T> outputDevices)
 		{
+			using var lifecycle = Execution.EnterOutputDeviceLifecycle();
 			if (ExecutionState != ExecutionState.Stopped) return;
 			ExecutionState = ExecutionState.Starting;
 			ApplyToDevices(outputDevices, StartDevice);
@@ -32,6 +33,7 @@ namespace Vixen.Sys.Managers
 
 		public void StopAll(IEnumerable<T> outputDevices)
 		{
+			using var lifecycle = Execution.EnterOutputDeviceLifecycle();
 			if (ExecutionState is not (ExecutionState.Started or ExecutionState.Paused)) return;
 			ExecutionState = ExecutionState.Stopping;
 			ApplyToDevices(outputDevices, StopDevice);
@@ -40,6 +42,7 @@ namespace Vixen.Sys.Managers
 
 		public void PauseAll(IEnumerable<T> outputDevices)
 		{
+			using var lifecycle = Execution.EnterOutputDeviceLifecycle();
 			if (ExecutionState != ExecutionState.Started) return;
 			ApplyToDevices(outputDevices, PauseDevice);
 			ExecutionState = ExecutionState.Paused;
@@ -47,6 +50,7 @@ namespace Vixen.Sys.Managers
 
 		public void ResumeAll(IEnumerable<T> outputDevices)
 		{
+			using var lifecycle = Execution.EnterOutputDeviceLifecycle();
 			if (ExecutionState != ExecutionState.Paused) return;
 			ApplyToDevices(outputDevices, ResumeDevice);
 			ExecutionState = ExecutionState.Started;

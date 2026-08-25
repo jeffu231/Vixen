@@ -25,6 +25,7 @@ namespace Vixen.Sys
 		private static Thread _executionThread;
 		private static ExecutionScheduler _executionScheduler;
 		private static readonly Lock ExecutionSchedulerSyncRoot = new();
+		private static readonly ReaderWriterLockSlim OutputDeviceLifecycleLock = new(LockRecursionPolicy.SupportsRecursion);
 		private static readonly Dictionary<Guid, int> ControllerFailureCounts = new();
 		private static readonly ConcurrentQueue<OutputController> ControllersToStop = new();
 
@@ -126,6 +127,43 @@ namespace Vixen.Sys
 			{
 				_executionScheduler?.NotifyActiveConsumerStateChanged();
 			}
+		}
+
+		/// <summary>
+		/// Prevents ordinary scheduler frames and external output lifecycle actions until disposed.
+		/// </summary>
+		/// <returns>A lease that restores normal scheduler and output lifecycle behavior.</returns>
+		internal static ExecutionQuiesceLease Quiesce()
+		{
+			OutputDeviceLifecycleLock.EnterWriteLock();
+			try
+			{
+				ExecutionQuiesceLease schedulerLease;
+				lock (ExecutionSchedulerSyncRoot)
+				{
+					schedulerLease = _executionScheduler?.Quiesce();
+				}
+				return new ExecutionQuiesceLease(() =>
+				{
+					schedulerLease?.Dispose();
+					OutputDeviceLifecycleLock.ExitWriteLock();
+				});
+			}
+			catch
+			{
+				OutputDeviceLifecycleLock.ExitWriteLock();
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Serializes an output device lifecycle operation with an export quiesce lease.
+		/// </summary>
+		/// <returns>A scope that permits one output device lifecycle operation.</returns>
+		internal static IDisposable EnterOutputDeviceLifecycle()
+		{
+			OutputDeviceLifecycleLock.EnterReadLock();
+			return new ExecutionQuiesceLease(OutputDeviceLifecycleLock.ExitReadLock);
 		}
 
 		private static ExecutionStateEngine _State

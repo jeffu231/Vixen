@@ -18,8 +18,8 @@ An operator can verify the result by playing a sequence with controllers and pre
 - [x] (2026-08-25) Resolved product decisions with the requester: per-device cadence is deprecated; controller failures retry at most five times; export owns a quiesced state and restores prior running/paused state; MMCSS is deferred until measurements justify it.
 - [x] (2026-08-25) Milestone 1: Added the internal scheduler, injectable timer abstraction, absolute-deadline calculator, Windows high-resolution/fallback timer, frame metrics/instrumentation values, and 13 deterministic tests. The focused test command passed 13/13 and the full `dotnet test src/Vixen.Tests/Vixen.Tests.csproj --no-build --no-restore` suite passed 503/503. Existing unrelated build warnings remain, including LiteDB `NU1904`.
 - [x] (2026-08-25) Milestone 2: Routed controller and preview lifecycle through immutable leased active snapshots. Device start/resume publishes only after its module operation succeeds; pause/stop unpublishes and waits for current frame leases before invoking the module. The execution loop now starts all active controller sends concurrently, waits at one barrier, isolates failures, and removes a controller after five consecutive failed frames. Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations. User confirmed the full tests pass without a Rider console window; `dotnet build src/Vixen.Core/Vixen.Core.csproj --no-restore` also passed with three existing unrelated warnings.
-- [ ] Milestone 3: Implemented coalesced live-state preview publication with per-preview mailboxes, invalidation, and deterministic mailbox tests. `Vixen.Core` builds successfully; awaiting focused Rider test execution because the CLI test project is blocked by missing existing module reference assemblies and native C++ MSBuild targets in this environment.
-- [ ] Milestone 4: Make opening, closing, pause, and export use scheduler quiescence safely.
+- [x] (2026-08-25) Milestone 3: Implemented coalesced live-state preview publication with per-preview mailboxes, invalidation, and deterministic mailbox tests. The requester confirmed all tests pass.
+- [x] (2026-08-25) Milestone 4: Replaced export's close/reopen path with a scheduler quiesce lease, captured and restored device/context running-paused behavior, and serialized output lifecycle operations behind the lease. Opening no longer changes multimedia resolution and closing already joins the scheduler before it releases contexts or devices. MSBuild built `Vixen.Tests`; focused scheduler tests passed 6/6 and `git diff --check` passed. A full CLI test invocation was stopped after its existing test host stalled without reporting failures.
 - [ ] Milestone 5: Deprecate obsolete per-device cadence APIs; add fault handling, instrumentation UI integration, and performance evidence.
 - [ ] Milestone 6: Apply required project skills, run full validation, manually verify, and update this plan's outcome sections.
 
@@ -39,6 +39,9 @@ An operator can verify the result by playing a sequence with controllers and pre
 
 - Observation: an active-snapshot change must wake the scheduler only after releasing the device manager lock. The scheduler refreshes its active-consumer predicate while handling the notification, which also acquires the manager lock.
   Evidence: `OutputDeviceExecution<T>` changes `_activeDevices` under `_syncRoot` and then calls `Execution.NotifyActiveConsumerStateChanged()` before waiting for outstanding leases.
+
+- Observation: the Visual Studio MSBuild toolchain builds the test project successfully, whereas a normal `dotnet test` build attempts unavailable native C++ project targets in this environment.
+  Evidence: `msbuild src/Vixen.Tests/Vixen.Tests.csproj /m /t:Build /p:Configuration=Debug /p:Platform=x64 /clp:ErrorsOnly` completed successfully; the focused `dotnet test --no-build` run passed 6/6.
 
 ## Decision Log
 
@@ -69,6 +72,10 @@ An operator can verify the result by playing a sequence with controllers and pre
 - Decision: Preview frame publication carries only an immutable frame ID and publication timestamp. The preview UI renders the live `VixenSystem.Elements` state when its coalesced callback executes; it does not receive a copied element-state collection.
   Rationale: The requester selected live reads from the element state latched by the engine. Current GDI and OpenGL preview implementations already read `VixenSystem.Elements` during `UpdatePreview`, so a collection copy would add allocation and a competing state-ownership model without changing their render input.
   Date/Author: 2026-08-25 / requester and implementation session.
+
+- Decision: Export holds a writer lease on a process-wide output lifecycle gate. Each normal output-device lifecycle operation takes a reader scope, so it blocks while export is quiesced; operations initiated by the export thread are allowed through the reentrant reader scope.
+  Rationale: This uses the existing `OutputDeviceExecution<T>` lifecycle funnel rather than adding competing state flags to every manager. It makes export the only output state mutator while it owns the scheduler quiesce lease.
+  Date/Author: 2026-08-25 / implementation session.
 
 ## Outcomes & Retrospective
 
@@ -280,3 +287,5 @@ Plan change note (2026-08-25): Marked Milestone 1 complete after adding the sche
 Plan change note (2026-08-25): Marked Milestone 2 complete after integrating leased active snapshots, transactional lifecycle publication, scheduler wake notifications, concurrent controller dispatch, the per-frame barrier, and bounded consecutive-failure handling. The Rider-visible console-window test was removed before validation because it exercised native timer construction; Windows integration coverage remains deferred to the later performance milestone.
 
 Plan change note (2026-08-25): Removed the unused POC-only `IOutputDevice.UpdateAsync()` API and its built-in implementations after the requester confirmed there are no external consumers. Simplified controller dispatch to direct scheduler-owned tasks while retaining the common barrier and per-controller failure isolation.
+
+Plan change note (2026-08-25): Marked Milestone 3 complete after the requester confirmed the full test suite passed. Marked Milestone 4 complete after replacing export close/reopen with nested scheduler quiescence, capturing/restoring output and context behavior, serializing ordinary output lifecycle actions behind the export lease, and removing obsolete Windows multimedia resolution calls. Focused scheduler tests passed 6/6 after a Visual Studio MSBuild build; the normal full CLI run stalled in its existing test host and was stopped.

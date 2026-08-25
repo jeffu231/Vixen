@@ -7,9 +7,6 @@ namespace Vixen.Sys.State.Execution.Behavior
 		// No state needed for this, so going to make it static.
 		public static void Run()
 		{
-			WindowsMultimedia wm = new WindowsMultimedia();
-			wm.BeginEnhancedResolution();
-
 			if (VixenSystem.OutputDeviceManagement != null)
 			{
 				// Enabled/disabled list is going to be an opt-in list of disabled devices
