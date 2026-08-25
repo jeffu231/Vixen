@@ -136,6 +136,16 @@ namespace Vixen.Sys.Managers
 			get { return _deviceExecution.ExecutionState; }
 		}
 
+		OutputDeviceSnapshot<T> IOutputDeviceExecution<T>.AcquireActiveSnapshot()
+		{
+			return AcquireActiveSnapshot();
+		}
+
+		internal OutputDeviceSnapshot<T> AcquireActiveSnapshot()
+		{
+			return _deviceExecution.AcquireActiveSnapshot();
+		}
+
 		public IEnumerator<T> GetEnumerator()
 		{
 			return _deviceCollection.GetEnumerator();

@@ -2,7 +2,7 @@
 
 namespace Vixen.Sys.Managers
 {
-	internal interface IOutputDeviceExecution<in T>
+	internal interface IOutputDeviceExecution<T>
 		where T : class, IOutputDevice
 	{
 		void Start(T outputDevice);
@@ -17,6 +17,7 @@ namespace Vixen.Sys.Managers
 		void PauseAll(IEnumerable<T> outputDevices);
 		void ResumeAll();
 		void ResumeAll(IEnumerable<T> outputDevices);
+		OutputDeviceSnapshot<T> AcquireActiveSnapshot();
 		ExecutionState ExecutionState { get; }
 	}
 }

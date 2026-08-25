@@ -1,9 +1,12 @@
 ﻿using System.Diagnostics;
+using System.Collections.Concurrent;
 using NLog;
 using Vixen.Instrumentation;
 using Vixen.Sys.Instrumentation;
 using Vixen.Sys.Managers;
 using Vixen.Sys.State.Execution;
+using Vixen.Sys.Engine;
+using Vixen.Sys.Output;
 
 namespace Vixen.Sys
 {
@@ -20,6 +23,10 @@ namespace Vixen.Sys
 		private static Stopwatch _stopwatch;
 		private static bool _lastUpdateClearedStates;
 		private static Thread _executionThread;
+		private static ExecutionScheduler _executionScheduler;
+		private static readonly Lock ExecutionSchedulerSyncRoot = new();
+		private static readonly Dictionary<Guid, int> ControllerFailureCounts = new();
+		private static readonly ConcurrentQueue<OutputController> ControllersToStop = new();
 		private static readonly double TicksPerMicrosecond = Stopwatch.Frequency / 1_000_000.0;
 		
 		/// <summary>
@@ -78,17 +85,44 @@ namespace Vixen.Sys
 
 		internal static void Startup()
 		{
-			if (_executionThread == null)
+			lock (ExecutionSchedulerSyncRoot)
 			{
-				_executionThread = new Thread(UpdateState) { Name = "Execution State Update", IsBackground = true, Priority = ThreadPriority.Highest };
+				if (_executionThread?.IsAlive == true)
+				{
+					return;
+				}
+
+				_executionScheduler?.Dispose();
+				_executionScheduler = new ExecutionScheduler(new WindowsHighResolutionExecutionTimer(),
+					() => VixenSystem.DefaultUpdateTimeSpan,
+					HasActiveConsumers,
+					ExecuteFrame,
+					new ExecutionFrameMetrics());
+				_executionScheduler.NotifyActiveConsumerStateChanged();
+				_executionThread = new Thread(UpdateState) { Name = "Execution State Update", IsBackground = true, Priority = ThreadPriority.Normal };
+				_executionThread.Start();
 			}
-			_executionThread.Start();
 			Logging.Info("Execution Startup");
 		}
 
 		internal static void Shutdown()
 		{
-			_executionThread = null;
+			Thread executionThread;
+			lock (ExecutionSchedulerSyncRoot)
+			{
+				_executionScheduler?.Stop();
+				executionThread = _executionThread;
+			}
+			if (executionThread != null && executionThread != Thread.CurrentThread)
+			{
+				executionThread.Join();
+			}
+			lock (ExecutionSchedulerSyncRoot)
+			{
+				_executionScheduler?.Dispose();
+				_executionScheduler = null;
+				_executionThread = null;
+			}
 			Logging.Info("Execution shutdown");
 		}
 
@@ -134,16 +168,44 @@ namespace Vixen.Sys
 				InitInstrumentation();
 			}
 
-			while (!IsClosed)
+			try
 			{
-				_stopwatch!.Restart();
-				
+				_executionScheduler?.Run();
+			}
+			catch (Exception exception)
+			{
+				Logging.Error(exception, "Execution scheduler terminated unexpectedly.");
+			}
+			finally
+			{
+				Logging.Info("Execution thread exiting");
+			}
+		}
+
+		private static bool HasActiveConsumers()
+		{
+			using var controllers = VixenSystem.OutputControllers.AcquireActiveSnapshot();
+			using var previews = VixenSystem.Previews.AcquireActiveSnapshot();
+			return controllers.Devices.Length > 0 || previews.Devices.Length > 0;
+		}
+
+		private static void ExecuteFrame(long frameId)
+		{
+			while (ControllersToStop.TryDequeue(out var controllerToStop))
+			{
+				VixenSystem.OutputControllers.Stop(controllerToStop);
+			}
+
+			_stopwatch!.Restart();
+			using var controllers = VixenSystem.OutputControllers.AcquireActiveSnapshot();
+			using var previews = VixenSystem.Previews.AcquireActiveSnapshot();
+
 				bool elementsAffected = VixenSystem.Contexts.Update();
 				if (elementsAffected)
 				{
 					VixenSystem.Elements.Update();
 					_lastUpdateClearedStates = false;
-					if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
+					if (controllers.Devices.Length > 0)
 					{
 						//Only update the filter chain if we have a controller running
 						VixenSystem.Filters.Update();
@@ -154,29 +216,20 @@ namespace Vixen.Sys
 					//No need to sample all the contexts as we were just told there are no elements effected.
 					VixenSystem.Elements.ClearStates();
 					_lastUpdateClearedStates = true;
-					if (VixenSystem.OutputControllers.Any(x => x.IsRunning))
+					if (controllers.Devices.Length > 0)
 					{
 						//Only update the filter chain if we have a controller running
 						VixenSystem.Filters.Update();
 					}
 				}
 
-				UpdatePreviews();
-				UpdateOutputDevicesAsync().Wait();
+				UpdatePreviews(previews.Devices);
+				UpdateOutputDevices(controllers.Devices);
 				
 				_executionUpdateTime.Set(_stopwatch.ElapsedMilliseconds);
 				_executionUpdateRate.Increment();
 				
-				var sleepStart = _stopwatch.ElapsedMilliseconds;
-				var elapsed = ElapsedHiRes(_stopwatch);
-				double diff = VixenSystem.DefaultUpdateInterval - elapsed;
-
-				Sleep(diff * 1000);
-				_executionSleepTime.Set(_stopwatch.ElapsedMilliseconds - sleepStart);
-			}
-			
-			Logging.Info("Execution thread exiting");
-			}
+		}
 
 		private static void Sleep(double microseconds)
 		{
@@ -216,26 +269,48 @@ namespace Vixen.Sys
 			return stopwatch.ElapsedTicks * TickLength;
 		}
 
-		private static readonly List<Task> UpdateOutputTasks = new();
-		private static async Task UpdateOutputDevicesAsync()
+		private static void UpdateOutputDevices(OutputController[] outputControllers)
 		{
 			var start = _stopwatch.ElapsedMilliseconds;
-			UpdateOutputTasks.Clear();
-			foreach (var outputController in VixenSystem.OutputControllers.Where(c => c.IsRunning))
+			var updateTasks = outputControllers.Select(outputController => Task.Run(() => UpdateController(outputController))).ToArray();
+			var failedControllers = Task.WhenAll(updateTasks).GetAwaiter().GetResult().Where(controller => controller != null).ToArray();
+			foreach (var controller in outputControllers.Except(failedControllers))
 			{
-				var task = outputController.UpdateAsync();
-				UpdateOutputTasks.Add(task);
+				ControllerFailureCounts.Remove(controller.Id);
 			}
-
-			await Task.WhenAll(UpdateOutputTasks);
+			foreach (var controller in failedControllers)
+			{
+				var failures = ControllerFailureCounts.GetValueOrDefault(controller.Id) + 1;
+				ControllerFailureCounts[controller.Id] = failures;
+				if (failures >= 5)
+				{
+					Logging.Error("Controller {0} failed five consecutive frames and will be stopped.", controller.Name);
+					ControllerFailureCounts.Remove(controller.Id);
+					ControllersToStop.Enqueue(controller);
+				}
+			}
 			_executionUpdateOutputDevicesTime.Set(_stopwatch.ElapsedMilliseconds - start);
 		}
 
-		private static void UpdatePreviews()
+		private static OutputController UpdateController(OutputController outputController)
+		{
+			try
+			{
+				outputController.UpdateFrame();
+				return null;
+			}
+			catch (Exception exception)
+			{
+				Logging.Error(exception, "Controller {0} failed while consuming the frame.", outputController.Name);
+				return outputController;
+			}
+		}
+
+		private static void UpdatePreviews(OutputPreview[] previews)
 		{
 			var start = _stopwatch.ElapsedMilliseconds;
 			
-			foreach (var preview in VixenSystem.Previews.Where(p => p.IsRunning))
+			foreach (var preview in previews)
 			{
 				//We can update synchronous as this will just get posted to the UI thread anyway
 				preview.Update();

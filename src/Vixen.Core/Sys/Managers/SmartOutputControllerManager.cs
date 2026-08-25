@@ -152,6 +152,11 @@ namespace Vixen.Sys.Managers
 			get { return _mediator.ExecutionState; }
 		}
 
+		OutputDeviceSnapshot<SmartOutputController> IOutputDeviceExecution<SmartOutputController>.AcquireActiveSnapshot()
+		{
+			return _mediator.AcquireActiveSnapshot();
+		}
+
 		public IEnumerator<SmartOutputController> GetEnumerator()
 		{
 			return _mediator.GetEnumerator();

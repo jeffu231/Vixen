@@ -12,9 +12,9 @@
 		public void Start()
 		{
 			if (!IsRunning) {
+				_Start();
 				IsRunning = true;
 				IsPaused = false;
-				_Start();
 			}
 		}
 
@@ -30,16 +30,16 @@
 		public void Pause()
 		{
 			if (IsRunning && !IsPaused) {
-				IsPaused = true;
 				_Pause();
+				IsPaused = true;
 			}
 		}
 
 		public void Resume()
 		{
 			if (IsRunning && IsPaused) {
-				IsPaused = false;
 				_Resume();
+				IsPaused = false;
 			}
 		}
 

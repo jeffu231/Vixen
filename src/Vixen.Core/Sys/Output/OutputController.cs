@@ -135,6 +135,16 @@ namespace Vixen.Sys.Output
 
 		public void Update()
 		{
+			Update(throwOnFailure: false);
+		}
+
+		internal void UpdateFrame()
+		{
+			Update(throwOnFailure: true);
+		}
+
+		private void Update(bool throwOnFailure)
+		{
 			_updateStopwatch.Restart();
 
 			try
@@ -170,6 +180,10 @@ namespace Vixen.Sys.Output
 			catch (Exception e)
 			{
 				Logging.Error(e, "An error occurred outputting data for controller {0}", Name);
+				if (throwOnFailure)
+				{
+					throw;
+				}
 			}
 			finally
 			{
