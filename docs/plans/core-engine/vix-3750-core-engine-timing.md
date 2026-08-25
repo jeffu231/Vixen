@@ -16,7 +16,7 @@ An operator can verify the result by playing a sequence with controllers and pre
 
 - [x] (2026-08-25) Read `.agents/PLANS.md`, `docs/reviews/vix-3750-core-engine-timing-review.md`, and the current execution, output-device, export, context, lifecycle, and instrumentation code.
 - [x] (2026-08-25) Resolved product decisions with the requester: per-device cadence is deprecated; controller failures retry at most five times; export owns a quiesced state and restores prior running/paused state; MMCSS is deferred until measurements justify it.
-- [ ] Milestone 1: Create deterministic scheduler, deadline, timer, and metrics foundations with unit tests.
+- [x] (2026-08-25) Milestone 1: Added the internal scheduler, injectable timer abstraction, absolute-deadline calculator, Windows high-resolution/fallback timer, frame metrics/instrumentation values, and 13 deterministic tests. The focused test command passed 13/13 and the full `dotnet test src/Vixen.Tests/Vixen.Tests.csproj --no-build --no-restore` suite passed 503/503. Existing unrelated build warnings remain, including LiteDB `NU1904`.
 - [ ] Milestone 2: Route controller lifecycle through active snapshots and a parallel frame barrier.
 - [ ] Milestone 3: Replace queued preview updates with coalescing latest-state publication.
 - [ ] Milestone 4: Make opening, closing, pause, and export use scheduler quiescence safely.
@@ -33,6 +33,9 @@ An operator can verify the result by playing a sequence with controllers and pre
 
 - Observation: `Vixen.Core` already grants `InternalsVisibleTo` to `Vixen.Tests`, allowing focused tests for the internal scheduler without making timing implementation types public module APIs.
   Evidence: `src/Vixen.Core/Vixen.Core.csproj` contains `<InternalsVisibleTo Include="Vixen.Tests" />`.
+
+- Observation: C# cannot define the `Vixen.Sys.Execution` namespace while `Vixen.Sys.Execution` is already a type.
+  Evidence: the first Milestone 1 build failed with `CS0101: The namespace 'Vixen.Sys' already contains a definition for 'Execution'`.
 
 ## Decision Log
 
@@ -56,9 +59,13 @@ An operator can verify the result by playing a sequence with controllers and pre
   Rationale: Existing controller module instances expose synchronous `UpdateState` only. An internal adapter provides true inter-controller parallel dispatch without prematurely committing module authors to a public asynchronous output-completion contract.
   Date/Author: 2026-08-25 / planning agent, based on current module surface and review requirements.
 
+- Decision: Keep the planned `src/Vixen.Core/Sys/Execution/` directory, but use namespace `Vixen.Sys.Engine` for its types.
+  Rationale: `Vixen.Sys.Execution` is already the existing static engine facade type. C# rejects a child namespace with the same qualified name, while `Vixen.Sys.Engine` clearly identifies the internal scheduling implementation and avoids a public API rename.
+  Date/Author: 2026-08-25 / implementation session.
+
 ## Outcomes & Retrospective
 
-Not started. At completion, record measured 25 ms and 50 ms results, final test totals, any timer fallback observations, deviations from this plan, and whether the data supports a follow-up MMCSS experiment.
+Milestone 1 established the timing foundation but does not replace the live legacy execution loop yet; Milestone 2 performs that integration. The new `ExecutionScheduler` uses an injected active-consumer predicate and frame delegate, supports immediate idle-to-active frames, absolute deadlines, interval-boundary resets, cancellation/wake, a 500-microsecond maximum final spin, and an internal metrics set. `WindowsHighResolutionExecutionTimer` requests only timer modify/synchronize access and falls back to process-scoped one-millisecond timer resolution when high-resolution timer creation is unavailable. The focused suite passed 13/13. At full completion, record measured 25 ms and 50 ms results, final test totals, any timer fallback observations, deviations from this plan, and whether the data supports a follow-up MMCSS experiment.
 
 ## Context and Orientation
 
@@ -265,3 +272,5 @@ On the existing public `Vixen.Sys.Output.IOutputDevice`, retain but obsolete:
 No implementation in this plan may use either member to decide whether or when to render/send a frame. Preserve `Update()` and `UpdateAsync()` during this release for module compatibility; `ExecutionScheduler` routes present synchronous controller output through its internal legacy adapter.
 
 Plan change note (2026-08-25): Initial ExecPlan created from the VIX-3750 timing review and requester decisions. It records the explicit deprecation, retry, export-restoration, and MMCSS-scope choices so implementation does not infer them later.
+
+Plan change note (2026-08-25): Marked Milestone 1 complete after adding the scheduler/timer/metrics foundation and deterministic tests. Documented the necessary `Vixen.Sys.Engine` namespace choice after the existing `Vixen.Sys.Execution` type prevented the originally suggested namespace.
